@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Focus">
+<meta name="theme-color" content="#f5efe8">
+<title>Focus</title>
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;overflow:hidden;color:#2c2217;}
+input,textarea,select{font-family:inherit;outline:none;border:none;background:transparent;}
+button{font-family:inherit;cursor:pointer;}
+button:active{transform:scale(0.95);transition:transform 0.1s;}
+::-webkit-scrollbar{display:none;}
+
+:root{--r:20px;--r-sm:12px;--r-pill:100px;}
+/* THEMES */
+body,[data-theme="sand"]{--bg:#f5efe8;--surface:#ede5da;--warm:#e0d3c3;--terra:#c47d52;--terra2:#a85e35;--terra-l:#f0dece;--teal:#2d6b62;--teal-l:#ddeae8;--slate:#7090a8;--slate-l:#dde6ef;--text:#2c2217;--text2:#6b5644;--text3:#a08878;--text4:#c4b0a0;--sep:rgba(160,120,90,0.12);--shadow:0 2px 16px rgba(100,60,30,0.07),0 1px 4px rgba(100,60,30,0.05);--shadow-md:0 6px 32px rgba(100,60,30,0.12),0 2px 8px rgba(100,60,30,0.06);}
+[data-theme="dark"]{--bg:#111;--surface:#1e1e1e;--warm:#2a2a2a;--terra:#e8956b;--terra2:#c47d52;--terra-l:#2a1a0e;--teal:#4aab9e;--teal-l:#0e2422;--slate:#8aabcc;--slate-l:#151e28;--text:#f0ece8;--text2:#c0a890;--text3:#806858;--text4:#483828;--sep:rgba(255,200,150,0.08);--shadow:0 2px 16px rgba(0,0,0,0.35),0 1px 4px rgba(0,0,0,0.25);--shadow-md:0 6px 32px rgba(0,0,0,0.45);}
+[data-theme="forest"]{--bg:#eef4ee;--surface:#ddeadd;--warm:#ccdacc;--terra:#3a7d5a;--terra2:#2a6048;--terra-l:#cce8d8;--teal:#2d6b62;--teal-l:#cde4e0;--slate:#6b8a6b;--slate-l:#d4e4d4;--text:#1a2e1a;--text2:#3a5a3a;--text3:#6a8a6a;--text4:#9ab09a;--sep:rgba(60,120,60,0.1);--shadow:0 2px 16px rgba(30,80,30,0.07),0 1px 4px rgba(30,80,30,0.05);--shadow-md:0 6px 32px rgba(30,80,30,0.12);}
+[data-theme="ocean"]{--bg:#eef3f9;--surface:#dce8f4;--warm:#c8d8ee;--terra:#2e6da8;--terra2:#1e5288;--terra-l:#cce0f4;--teal:#1e8a8a;--teal-l:#cce4e4;--slate:#5080b0;--slate-l:#ccdaee;--text:#0e1e30;--text2:#2e4e70;--text3:#5e7e9e;--text4:#9eb4cc;--sep:rgba(30,80,140,0.1);--shadow:0 2px 16px rgba(20,60,120,0.07),0 1px 4px rgba(20,60,120,0.05);--shadow-md:0 6px 32px rgba(20,60,120,0.12);}
+
+/* Priority colors */
+.p-high{--pc:#c47d52;}
+.p-medium{--pc:#7090a8;}
+.p-low{--pc:#2d6b62;}
+
+#app{width:100%;height:100dvh;max-width:430px;margin:0 auto;background:var(--bg);position:relative;overflow:hidden;}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;flex-direction:column;padding-bottom:90px;}
+.screen.active{display:flex;}
+.screen-home.active{overflow:hidden;flex-direction:column;}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bloom{0%{opacity:0;transform:scale(0.88)}60%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes nowPulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.fade-up{animation:fadeUp 0.35s cubic-bezier(0.34,1.1,0.64,1) both;}
+.bloom{animation:bloom 0.32s cubic-bezier(0.34,1.2,0.64,1) both;}
+
+/* ── HEADER ── */
+.page-header{padding:56px 24px 0;background:var(--bg);}
+.page-eyebrow{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;font-size:16px;font-style:normal;color:var(--terra2);font-weight:600;letter-spacing:-0.01em;margin-bottom:6px;}
+.page-title{font-family:'Georgia','Times New Roman',serif;font-size:40px;font-weight:500;color:var(--text);letter-spacing:-0.5px;line-height:1.05;}
+
+/* ── STAT CARDS ── */
+.stats-row{display:flex;gap:10px;padding:18px 24px 0;}
+.stat-card{flex:1;background:var(--surface);border-radius:var(--r);padding:14px 12px 12px;box-shadow:var(--shadow);}
+.stat-n{font-family:'Georgia','Times New Roman',serif;font-size:32px;font-weight:400;line-height:1;letter-spacing:-0.5px;}
+.stat-l{font-size:10px;font-weight:600;color:var(--text3);margin-top:5px;text-transform:uppercase;letter-spacing:0.07em;}
+
+/* ── SEGMENT ── */
+.segment{margin:18px 24px 0;background:var(--cream);border-radius:var(--r-pill);padding:3px;display:flex;}
+.seg-btn{flex:1;padding:8px 0;border:none;border-radius:var(--r-pill);font-size:13px;font-weight:600;color:var(--text3);background:transparent;transition:all 0.22s;}
+.seg-btn.on{background:var(--terra);color:white;box-shadow:0 2px 10px rgba(196,125,82,0.35);}
+
+/* ── CAT CHIPS ── */
+.cat-row{display:flex;gap:10px;padding:10px 16px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--bg);;position:sticky;top:62px;z-index:19;}
+.cat-chip{display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:var(--r-pill);border:2px solid transparent;font-size:14px;font-weight:600;white-space:nowrap;background:var(--cream);color:var(--text3);box-shadow:var(--shadow);transition:all 0.2s;cursor:pointer;}
+.cat-chip.on{border-color:currentColor;box-shadow:var(--shadow-md);}
+
+/* ── TASK CARDS ── */
+.task-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.task-card{background:var(--surface);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--shadow);cursor:pointer;position:relative;overflow:hidden;transition:transform 0.12s,box-shadow 0.18s;}
+.task-card:active{transform:scale(0.983);box-shadow:0 1px 8px rgba(100,60,30,0.08);}
+.task-card.done-card{opacity:0.5;}
+
+/* Left color blob */
+.task-card::before{content:'';position:absolute;left:-14px;top:-14px;width:52px;height:52px;border-radius:50%;background:var(--pc,var(--terra));opacity:0.14;pointer-events:none;}
+
+.task-row-top{display:flex;align-items:flex-start;gap:12px;}
+.task-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--warm);flex-shrink:0;margin-top:1px;background:transparent;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.task-check.on{background:var(--terra);border-color:var(--terra);}
+.task-check svg{display:none;}
+.task-check.on svg{display:block;}
+
+.task-body{flex:1;min-width:0;}
+.task-title{font-family:'Georgia','Times New Roman',serif;font-size:18px;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:1px;}
+.task-title.done{text-decoration:line-through;color:var(--text4);}
+
+.task-pills{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;align-items:center;}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill);}
+.pill-time{background:var(--terra-l);color:var(--terra2);}
+.pill-date{background:var(--cream);color:var(--text3);border:1px solid var(--warm);}
+.pill-past{background:#f5e6e0;color:#a84444;}
+.pill-cat{background:transparent;color:var(--text3);padding-left:0;}
+.pill-loc{color:var(--text4);padding-left:0;font-size:10px;}
+.pill-rec{color:var(--teal);font-size:10px;}
+.pill-urgent{background:var(--terra-l);color:var(--terra2);font-size:10px;font-weight:700;letter-spacing:0.05em;}
+.cat-blob{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ── EMPTY ── */
+.empty{padding:80px 24px;text-align:center;}
+.empty-orb{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--terra-l),var(--teal-l));margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.empty-title{font-family:'Georgia','Times New Roman',serif;font-size:20px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.empty-sub{font-size:14px;color:var(--text4);}
+
+/* ── FAB ── */
+#fab{position:fixed;bottom:104px;right:22px;width:54px;height:54px;background:var(--terra);border:none;border-radius:50%;color:white;font-size:26px;font-weight:300;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(196,125,82,0.45);z-index:200;line-height:1;}
+#fab:active{transform:scale(0.9);}
+
+/* ── TAB BAR ── */
+#tab-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--warm);display:none;padding:8px 0 26px;z-index:100;}
+.tb-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text4);transition:color 0.15s;}
+.tb-btn.on{color:var(--terra);}
+.tb-icon{font-size:21px;}
+.tb-label{font-size:10px;font-weight:600;letter-spacing:0.02em;}
+
+/* ── FORM ── */
+.form-nav{display:flex;align-items:center;padding:52px 16px 12px;gap:4px;}
+.form-nav-title{flex:1;font-family:'Georgia','Times New Roman',serif;font-size:20px;font-weight:500;color:var(--text);text-align:center;}
+.form-nav-btn{font-size:16px;font-weight:600;color:var(--terra);background:none;border:none;padding:8px 10px;min-width:68px;}
+
+.form-section-label{padding:18px 24px 8px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;}
+.form-group{margin:0 16px;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.form-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--sep);min-height:50px;}
+.form-row:last-child{border-bottom:none;}
+.form-lbl{font-size:15px;font-weight:500;color:var(--text);min-width:78px;flex-shrink:0;}
+.form-val{flex:1;font-size:15px;color:var(--text);text-align:right;background:transparent;}
+.form-val::placeholder{color:var(--text4);}
+.form-val-l{flex:1;font-size:15px;color:var(--text);background:transparent;}
+.form-val-l::placeholder{color:var(--text4);}
+.form-val-big{flex:1;font-size:19px;font-weight:500;color:var(--text);background:transparent;}
+.form-val-big::placeholder{color:var(--text4);}
+.form-select{flex:1;font-size:15px;color:var(--text);text-align:right;background:transparent;-webkit-appearance:none;}
+.form-select option{background:#f5efe8;}
+
+/* pills selector */
+.pill-sel-wrap{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px;}
+.f-pill{padding:9px 16px;border-radius:var(--r-pill);font-size:13px;font-weight:600;border:1.5px solid var(--warm);background:var(--sand);color:var(--text3);transition:all 0.18s;}
+.f-pill.on{background:var(--terra);border-color:var(--terra);color:white;box-shadow:0 2px 10px rgba(196,125,82,0.3);}
+.f-pill-teal.on{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 2px 10px rgba(45,107,98,0.25);}
+.f-pill-slate.on{background:var(--slate);border-color:var(--slate);color:white;box-shadow:0 2px 10px rgba(112,144,168,0.25);}
+
+/* icon strip */
+.icon-strip{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;background:var(--surface);border-radius:var(--r);margin:0 16px;box-shadow:var(--shadow);}
+.ic-btn{width:42px;height:42px;border-radius:12px;background:var(--sand);border:2px solid transparent;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.ic-btn.on{background:var(--terra-l);border-color:var(--terra);}
+
+/* time */
+.time-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:12px 18px;align-items:center;}
+.time-box{background:var(--sand);border-radius:14px;padding:12px 8px;text-align:center;}
+.time-box label{display:block;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;}
+.time-box input{font-size:19px;font-weight:600;color:var(--text);width:100%;text-align:center;font-family:'Georgia','Times New Roman',serif;}
+.time-dash{font-size:18px;color:var(--text4);text-align:center;font-weight:300;}
+
+/* loc */
+.loc-results{background:var(--surface);border-radius:var(--r);margin:6px 16px 0;box-shadow:var(--shadow-md);overflow:hidden;}
+.loc-row{padding:12px 18px;border-bottom:1px solid var(--sep);cursor:pointer;}
+.loc-row:last-child{border-bottom:none;}
+.loc-row:active{background:var(--sand);}
+.loc-row-name{font-size:14px;font-weight:600;color:var(--text);}
+.loc-row-addr{font-size:11px;color:var(--text4);margin-top:2px;}
+.loc-sel{background:var(--teal-l);border-radius:var(--r);margin:8px 16px 0;padding:14px 18px;}
+.loc-sel-name{font-size:14px;font-weight:600;color:var(--teal);}
+.loc-sel-addr{font-size:11px;color:var(--text3);margin-top:2px;}
+.loc-sel-btns{display:flex;gap:8px;margin-top:10px;}
+.loc-btn{padding:7px 14px;border-radius:var(--r-pill);border:none;font-size:12px;font-weight:700;}
+.loc-btn-primary{background:var(--teal);color:white;}
+.loc-btn-ghost{background:var(--teal-l);color:var(--teal);border:1.5px solid var(--teal);}
+
+/* ── DETAIL ── */
+.detail-head{padding:52px 24px 0;}
+.detail-emoji-wrap{width:72px;height:72px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;}
+.detail-title{font-family:'Georgia','Times New Roman',serif;font-size:30px;font-weight:500;color:var(--text);letter-spacing:-0.3px;line-height:1.2;margin-bottom:14px;}
+.detail-badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+.d-badge{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r-pill);font-size:13px;font-weight:600;}
+.detail-info{margin:0 16px;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.d-info-row{display:flex;gap:14px;padding:14px 18px;border-bottom:1px solid var(--sep);align-items:flex-start;}
+.d-info-row:last-child{border-bottom:none;}
+.d-info-icon{font-size:20px;flex-shrink:0;}
+.d-info-label{font-size:10px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;}
+.d-info-val{font-size:15px;font-weight:500;color:var(--text);line-height:1.4;}
+.d-map-btn{width:100%;background:var(--teal);color:white;border:none;border-radius:var(--r);padding:15px;font-size:16px;font-weight:600;margin:0 0 10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.d-done-btn{width:100%;border:none;border-radius:var(--r);padding:15px;font-size:16px;font-weight:600;}
+.d-done-btn.pending{background:var(--terra);color:white;box-shadow:0 4px 16px rgba(196,125,82,0.3);}
+.d-done-btn.done{background:var(--cream);color:var(--text3);border:2px solid var(--warm);}
+.detail-btns{padding:0 16px 16px;}
+
+/* ── CALENDAR ── */
+.cal-head{padding:52px 24px 0;background:var(--sand);}
+.cal-title-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.cal-nav-btn{width:34px;height:34px;background:var(--cream);border:none;border-radius:50%;font-size:17px;color:var(--text2);box-shadow:var(--shadow);flex-shrink:0;}
+.cal-label{flex:1;font-family:'Georgia','Times New Roman',serif;font-size:19px;font-weight:500;color:var(--text);text-align:center;}
+.today-btn{background:var(--terra);border:none;border-radius:var(--r-pill);padding:7px 14px;font-size:12px;font-weight:700;color:white;box-shadow:0 2px 10px rgba(196,125,82,0.3);}
+
+/* Day strip */
+.day-strip{display:flex;gap:6px;padding:14px 24px;overflow-x:auto;}
+.d-chip{display:flex;flex-direction:column;align-items:center;padding:8px 10px 6px;border-radius:18px;min-width:44px;cursor:pointer;transition:all 0.2s;border:1.5px solid transparent;}
+.d-chip.today{background:var(--terra);border-color:var(--terra);}
+.d-chip.sel:not(.today){background:var(--cream);border-color:var(--warm);box-shadow:var(--shadow);}
+.d-chip-wd{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text4);}
+.d-chip.today .d-chip-wd{color:rgba(255,255,255,0.7);}
+.d-chip-d{font-family:'Georgia','Times New Roman',serif;font-size:18px;font-weight:500;color:var(--text2);margin-top:1px;}
+.d-chip.today .d-chip-d{color:white;}
+.d-chip-dot{width:5px;height:5px;border-radius:50%;background:var(--terra);margin-top:3px;}
+.d-chip.today .d-chip-dot{background:rgba(255,255,255,0.5);}
+
+/* TL */
+.tl-wrap{padding:4px 24px 16px;}
+.tl-row{display:flex;gap:14px;min-height:52px;}
+.tl-time{font-size:11px;font-weight:600;color:var(--text4);width:36px;text-align:right;padding-top:6px;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.tl-col{flex:1;border-left:1.5px solid var(--warm);padding-left:14px;padding-bottom:4px;position:relative;}
+.tl-now{position:absolute;left:-5px;right:0;height:2px;background:var(--terra);}
+.tl-now-dot{position:absolute;left:-5px;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--terra);}
+.tl-card{background:var(--cream);border-radius:14px;padding:10px 14px;margin-bottom:6px;cursor:pointer;border-left:3px solid transparent;box-shadow:var(--shadow);transition:transform 0.1s;}
+.tl-card:active{transform:scale(0.98);}
+.tl-card-title{font-family:'Georgia','Times New Roman',serif;font-size:16px;font-weight:500;color:var(--text);line-height:1.3;}
+.tl-card-meta{font-size:11px;color:var(--text4);margin-top:3px;font-weight:500;}
+.tl-no-time-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 6px 50px;}
+
+/* Week */
+.wk-head{display:flex;border-bottom:1px solid var(--warm);padding:0 24px;background:var(--sand);}
+.wk-spacer{width:36px;flex-shrink:0;}
+.wk-day{flex:1;text-align:center;padding:8px 2px;}
+.wk-day-wd{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text4);}
+.wk-day-n{font-family:'Georgia','Times New Roman',serif;font-size:16px;font-weight:500;color:var(--text2);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:2px auto 0;}
+.wk-day.today .wk-day-n{background:var(--terra);color:white;}
+.wk-row{display:flex;min-height:48px;border-bottom:1px solid var(--sep);padding:0 24px;}
+.wk-time{width:36px;flex-shrink:0;font-size:10px;font-weight:600;color:var(--text4);text-align:right;padding:5px 6px 0 0;font-variant-numeric:tabular-nums;}
+.wk-cells{flex:1;display:flex;gap:3px;}
+.wk-cell{flex:1;padding:2px 1px;}
+.wk-ev{border-radius:8px;padding:3px 6px;margin-bottom:2px;cursor:pointer;border-left:2px solid transparent;}
+.wk-ev-t{font-size:10px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.wk-ev-s{font-size:9px;opacity:0.6;margin-top:1px;font-weight:500;}
+
+/* Month */
+.mn-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px;}
+.mn-dn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text4);text-align:center;padding:8px 0;}
+.mn-day{text-align:center;padding:4px 0;cursor:pointer;border-radius:12px;min-height:46px;}
+.mn-day .mn-n{font-family:'Georgia','Times New Roman',serif;font-size:14px;font-weight:400;color:var(--text2);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;transition:all 0.15s;}
+.mn-day.today .mn-n{background:var(--terra);color:white;font-weight:500;}
+.mn-day.sel:not(.today) .mn-n{background:var(--cream);box-shadow:var(--shadow);}
+.mn-day.other .mn-n{color:var(--text4);}
+.mn-dots{display:flex;gap:2px;justify-content:center;margin-top:3px;}
+.mn-dot{width:5px;height:5px;border-radius:50%;}
+.mn-events{padding:8px 24px;}
+.mn-ev-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--sep);cursor:pointer;}
+.mn-ev-row:last-child{border-bottom:none;}
+.mn-ev-time{font-size:12px;font-weight:600;color:var(--text4);min-width:52px;padding-top:1px;font-variant-numeric:tabular-nums;}
+.mn-ev-title{font-family:'Georgia','Times New Roman',serif;font-size:15px;font-weight:500;color:var(--text);}
+.mn-ev-cat{font-size:11px;color:var(--text4);margin-top:2px;display:flex;align-items:center;gap:4px;}
+
+/* ── CAT SCREEN ── */
+.cat-screen-card{margin:0 16px;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.cat-screen-row{display:flex;align-items:center;gap:14px;padding:15px 18px;border-bottom:1px solid var(--sep);}
+.cat-screen-row:last-child{border-bottom:none;}
+.cat-icon-box{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.cat-screen-name{font-size:16px;font-weight:500;color:var(--text);flex:1;font-family:'Georgia','Times New Roman',serif;}
+.cat-count-badge{font-size:12px;font-weight:600;color:var(--text3);}
+
+/* ── SETTINGS ── */
+.settings-section{margin:0 16px 16px;background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);}
+.settings-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--sep);cursor:pointer;}
+.settings-row:last-child{border-bottom:none;}
+.settings-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.settings-title{font-size:15px;font-weight:500;color:var(--text);flex:1;}
+.settings-sub{font-size:12px;color:var(--text4);margin-top:1px;}
+.settings-chevron{color:var(--text4);font-size:15px;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:108px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:var(--sand);padding:10px 22px;border-radius:var(--r-pill);font-size:14px;font-weight:600;opacity:0;transition:all 0.3s cubic-bezier(0.34,1.2,0.64,1);z-index:300;pointer-events:none;white-space:nowrap;letter-spacing:-0.01em;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* voice */
+.voice-form-btn{width:36px;height:36px;border-radius:50%;background:var(--terra-l);border:none;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.voice-form-btn.rec{background:var(--terra);animation:nowPulse 1s infinite;}
+
+/* ── ONBOARDING ── */
+#screen-onboarding{padding-bottom:0;background:var(--bg);}
+.ob-page{display:none;flex-direction:column;min-height:100dvh;}
+.ob-page.active{display:flex;}
+.ob-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px 16px;text-align:center;}
+@keyframes obPop{from{opacity:0;transform:scale(0.4) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.ob-emoji{font-size:72px;line-height:1;margin-bottom:24px;animation:obPop 0.55s cubic-bezier(0.34,1.5,0.64,1) both;}
+.ob-title{font-family:'Georgia','Times New Roman',serif;font-size:30px;font-weight:600;color:var(--text);letter-spacing:-0.4px;line-height:1.2;margin-bottom:10px;}
+.ob-sub{font-size:15px;color:var(--text3);line-height:1.55;max-width:290px;}
+.ob-body{padding:0 22px 12px;}
+.ob-name-input{width:100%;background:var(--surface);border:2.5px solid transparent;border-radius:18px;padding:17px 20px;font-size:20px;font-weight:600;color:var(--text);box-shadow:var(--shadow);transition:border-color .2s;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',system-ui,sans-serif;}
+.ob-name-input:focus{border-color:var(--terra);}
+.ob-name-input::placeholder{color:var(--text4);font-weight:400;}
+.ob-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ob-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ob-card{background:var(--surface);border-radius:18px;padding:16px 12px;text-align:center;border:2.5px solid transparent;box-shadow:var(--shadow);transition:all .2s;cursor:pointer;}
+.ob-card.on{border-color:var(--terra);background:var(--terra-l);}
+.ob-card-icon{font-size:32px;margin-bottom:7px;}
+.ob-card-name{font-size:14px;font-weight:700;color:var(--text);}.ob-grid3 .ob-card-name{font-size:12px;}.ob-grid3 .ob-card-icon{font-size:24px;}
+.ob-card-sub{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.3;}
+.ob-footer{padding:12px 22px 38px;display:flex;align-items:center;gap:14px;}
+.ob-dots{display:flex;gap:6px;flex:1;}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--warm);transition:all .3s;}
+.ob-dot.on{width:22px;border-radius:4px;background:var(--terra);}
+.ob-btn{background:var(--terra);border:none;border-radius:100px;padding:13px 24px;font-size:15px;font-weight:700;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.15);}
+.ob-btn:disabled{opacity:.3;}
+.ob-back{background:var(--surface);border:none;border-radius:50%;width:44px;height:44px;font-size:18px;color:var(--text3);box-shadow:var(--shadow);}
+/* theme card previews */
+.th-preview{height:40px;border-radius:9px;margin-bottom:7px;display:flex;gap:3px;align-items:flex-end;padding:5px;}
+.th-swatch{border-radius:4px;flex:1;}
+/* settings additions */
+.s-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;}
+.s-lang{background:var(--bg);border:2px solid var(--warm);border-radius:13px;padding:9px 8px;text-align:center;cursor:pointer;transition:all .18s;}
+.s-lang.on{border-color:var(--terra);background:var(--terra-l);}
+.s-lang-flag{font-size:20px;}
+.s-lang-name{font-size:11px;font-weight:700;color:var(--text);margin-top:2px;}
+.s-theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 14px;}
+.s-theme{border-radius:12px;border:2.5px solid transparent;cursor:pointer;transition:all .2s;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;gap:3px;}
+.s-theme.on{border-color:var(--terra);}
+.s-theme-dot{width:22px;height:22px;border-radius:50%;}
+.s-theme-lbl{font-size:9px;font-weight:700;line-height:1.2;text-align:center;}
+
+
+
+
+
+.cat-row::-webkit-scrollbar{display:none;}
+
+.home-fixed{flex-shrink:0;background:var(--bg);}
+</style>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDbZKpDqc2lknFtLgKU_1P2ofbNSsE6uug",
+      authDomain: "focus-a9087.firebaseapp.com",
+      projectId: "focus-a9087",
+      storageBucket: "focus-a9087.firebasestorage.app",
+      messagingSenderId: "821723210091",
+      appId: "1:821723210091:web:cbdef155e26377e76eac2e",
+      measurementId: "G-D0YRT8ZGT6"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const FAMILY_DOC = "focus-a9087-family";
+
+    window._fbSave = async function(stateObj) {
+      try {
+        await setDoc(doc(db, "families", FAMILY_DOC), {
+          data: JSON.stringify(stateObj),
+          ts: Date.now()
+        });
+      } catch(e) { console.warn("Firebase save:", e.message); }
+    };
+
+    window._fbListen = function(cb) {
+      onSnapshot(doc(db, "families", FAMILY_DOC), snap => {
+        if (snap.exists()) {
+          try { cb(JSON.parse(snap.data().data)); } catch(e) {}
+        }
+      });
+    };
+
+    signInAnonymously(auth)
+      .then(() => {
+        window._fbReady = true;
+        if (window._onFbReady) window._onFbReady();
+      })
+      .catch(e => console.warn("Firebase auth:", e.message));
+  </script>
+
+</head>
+<body>
+<div id="app">
+
+<!-- ══ ONBOARDING ══ -->
+<div id="screen-onboarding" class="screen" style="padding-bottom:0;">
+
+  <!-- Step 0: Name -->
+  <div class="ob-page active" id="ob-0">
+    <div class="ob-hero">
+      <div class="ob-emoji">🎯</div>
+      <div class="ob-title" id="ob0t">Hello!</div>
+      <div class="ob-sub" id="ob0s">Как тебя зовут? Буду обращаться лично.</div>
+    </div>
+    <div class="ob-body">
+      <input id="ob-name" type="text" autocomplete="off" autocorrect="off" class="ob-name-input" placeholder="Твоё имя..." data-action="checkName" />
+    </div>
+    <div class="ob-footer">
+      <div class="ob-dots"><div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" id="ob-n0" data-action="obGo" data-step="1" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- Step 1: Language -->
+  <div class="ob-page" id="ob-1">
+    <div class="ob-hero" style="padding-bottom:4px;">
+      <div class="ob-emoji">🌍</div>
+      <div class="ob-title" id="ob1t">Язык</div>
+      <div class="ob-sub" id="ob1s">На каком языке удобнее?</div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-grid3">
+        <div class="ob-card on" data-action="obPickLang" data-lang="ru"><div class="ob-card-icon">🇷🇺</div><div class="ob-card-name">Русский</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="en"><div class="ob-card-icon">🇬🇧</div><div class="ob-card-name">English</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="es"><div class="ob-card-icon">🇪🇸</div><div class="ob-card-name">Español</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="fr"><div class="ob-card-icon">🇫🇷</div><div class="ob-card-name">Français</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="de"><div class="ob-card-icon">🇩🇪</div><div class="ob-card-name">Deutsch</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="pt"><div class="ob-card-icon">🇧🇷</div><div class="ob-card-name">Português</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="sr"><div class="ob-card-icon">🇷🇸</div><div class="ob-card-name">Srpski</div></div>
+        <div class="ob-card" data-action="obPickLang" data-lang="ro"><div class="ob-card-icon">🇷🇴</div><div class="ob-card-name">Română</div></div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <button class="ob-back" data-action="obGo" data-step="0">←</button>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" data-action="obGo" data-step="2">→</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Theme -->
+  <div class="ob-page" id="ob-2">
+    <div class="ob-hero" style="padding-bottom:4px;">
+      <div class="ob-emoji">🎨</div>
+      <div class="ob-title" id="ob2t">Тема</div>
+      <div class="ob-sub" id="ob2s">Выбери оформление</div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-grid2">
+        <div class="ob-card on" data-th="sand" data-action="obPickTheme" data-theme="sand" style="background:#f5efe8;">
+          <div class="th-preview" style="background:#ede5da;"><div class="th-swatch" style="background:#c47d52;height:22px;"></div><div class="th-swatch" style="background:#2d6b62;height:15px;"></div><div class="th-swatch" style="background:#7090a8;height:10px;"></div></div>
+          <div class="ob-card-name" style="color:#2c2217;">🌿 Тёплый</div>
+        </div>
+        <div class="ob-card" data-th="dark" data-action="obPickTheme" data-theme="dark" style="background:#111;">
+          <div class="th-preview" style="background:#1e1e1e;"><div class="th-swatch" style="background:#e8956b;height:22px;"></div><div class="th-swatch" style="background:#4aab9e;height:15px;"></div><div class="th-swatch" style="background:#8aabcc;height:10px;"></div></div>
+          <div class="ob-card-name" style="color:#f0ece8;">🌙 Тёмный</div>
+        </div>
+        <div class="ob-card" data-th="forest" data-action="obPickTheme" data-theme="forest" style="background:#eef4ee;">
+          <div class="th-preview" style="background:#ddeadd;"><div class="th-swatch" style="background:#3a7d5a;height:22px;"></div><div class="th-swatch" style="background:#2d6b62;height:15px;"></div><div class="th-swatch" style="background:#6b8a6b;height:10px;"></div></div>
+          <div class="ob-card-name" style="color:#1a2e1a;">🌲 Лес</div>
+        </div>
+        <div class="ob-card" data-th="ocean" data-action="obPickTheme" data-theme="ocean" style="background:#eef3f9;">
+          <div class="th-preview" style="background:#dce8f4;"><div class="th-swatch" style="background:#2e6da8;height:22px;"></div><div class="th-swatch" style="background:#1e8a8a;height:15px;"></div><div class="th-swatch" style="background:#5080b0;height:10px;"></div></div>
+          <div class="ob-card-name" style="color:#0e1e30;">🌊 Океан</div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <button class="ob-back" data-action="obGo" data-step="1">←</button>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" data-action="obGo" data-step="3">→</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Humor style -->
+  <div class="ob-page" id="ob-3">
+    <div class="ob-hero" style="padding-bottom:4px;">
+      <div class="ob-emoji">😄</div>
+      <div class="ob-title" id="ob3t">Стиль</div>
+      <div class="ob-sub" id="ob3s">Как приложение должно говорить с тобой?</div>
+    </div>
+    <div class="ob-body">
+      <div class="ob-grid2">
+        <div class="ob-card" data-action="obPickHumor" data-humor="kind">
+          <div class="ob-card-icon">🌸</div>
+          <div class="ob-card-name" id="obhkn">Мягко</div>
+          <div class="ob-card-sub" id="obhkd">Поддержка и тёплые слова</div>
+        </div>
+        <div class="ob-card on" data-action="obPickHumor" data-humor="sarcasm">
+          <div class="ob-card-icon">😏</div>
+          <div class="ob-card-name" id="obhsn">С сарказмом</div>
+          <div class="ob-card-sub" id="obhsd">Мотивирует через подколы</div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <button class="ob-back" data-action="obGo" data-step="2">←</button>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot on"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" data-action="obGo" data-step="4">→</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Gender -->
+  <div class="ob-page" id="ob-4">
+    <div class="ob-hero" style="padding-bottom:4px;">
+      <div class="ob-emoji">🌈</div>
+      <div class="ob-title" id="ob4t">Как тебя воспринимать?</div>
+      <div class="ob-sub" id="ob4s">Чтобы правильно обращаться</div>
+    </div>
+    <div class="ob-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="ob-card" id="obg-m" data-action="obPickGender" data-gender="m">
+          <div class="ob-card-icon">👨</div>
+          <div class="ob-card-name" id="obg-mn">Он</div>
+        </div>
+        <div class="ob-card" id="obg-f" data-action="obPickGender" data-gender="f">
+          <div class="ob-card-icon">👩</div>
+          <div class="ob-card-name" id="obg-fn">Она</div>
+        </div>
+        <div class="ob-card on" id="obg-n" data-action="obPickGender" data-gender="n">
+          <div class="ob-card-icon">🌿</div>
+          <div class="ob-card-name" id="obg-nn">Без указания</div>
+        </div>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <button class="ob-back" data-action="obGo" data-step="3">←</button>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot on"></div></div>
+      <button class="ob-btn" id="ob-finish" data-action="obFinish">✓ Начать</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Quick picker overlay -->
+<div id="quick-picker" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" data-action="closeQuickPicker">
+  <div id="qp-sheet" data-action="stopProp" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--bg);border-radius:28px 28px 0 0;padding:20px 16px 48px;max-height:85dvh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--warm);border-radius:2px;margin:0 auto 20px;"></div>
+    <div id="qp-title" style="font-family:'Georgia','Times New Roman',serif;font-size:20px;font-weight:600;color:var(--text);padding:0 8px 14px;"></div>
+    <div id="qp-body"></div>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen screen-home">
+  <div class="home-fixed">
+    <div class="page-header">
+    <div class="page-eyebrow" id="eyebrow">Доброе утро</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+      <div class="page-title" id="home-title">Мой<br>день</div>
+      <div style="display:flex;gap:8px;padding-bottom:6px;">
+        <button onclick="goto('cats')" style="background:var(--cream);border:none;border-radius:50%;width:36px;height:36px;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);cursor:pointer;">🏷️</button>
+        <button onclick="goto('settings')" style="background:var(--cream);border:none;border-radius:50%;width:36px;height:36px;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);cursor:pointer;">⚙️</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-n" id="sn-t" style="color:var(--terra);">0</div><div class="stat-l" id="filter-today">СЕГОДНЯ</div></div>
+      <div class="stat-card"><div class="stat-n" id="sn-a" style="color:var(--slate);">0</div><div class="stat-l" id="stat-all-lbl">ВСЕГО</div></div>
+      <div class="stat-card"><div class="stat-n" id="sn-d" style="color:var(--teal);">0</div><div class="stat-l" id="filter-done">ГОТОВО</div></div>
+    </div>
+  </div>
+  <div class="segment">
+    <button class="seg-btn on" data-t="today" onclick="setTab('today',this)">Сегодня</button>
+    <button class="seg-btn" data-t="all" onclick="setTab('all',this)" id="filter-all">Все</button>
+    <button class="seg-btn" data-t="done" onclick="setTab('done',this)" id="stat-done-lbl">Готово</button>
+  </div>
+  <div class="cat-row" id="cat-row"></div>
+  </div>
+  <div id="home-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px;"></div>
+</div>
+
+<!-- ══ ADD/EDIT ══ -->
+<div id="screen-add" class="screen">
+  <div style="background:var(--sand);">
+    <div class="form-nav">
+      <button class="form-nav-btn" onclick="goto('home')" style="text-align:left;">Cancel</button>
+      <div class="form-nav-title" id="form-heading" id="add-screen-title">New Task</div>
+      <button class="form-nav-btn" onclick="saveTask()" style="text-align:right;font-weight:700;">Done</button>
+    </div>
+  </div>
+
+  <div class="form-section-label" id="add-sec-main">Main</div>
+  <div class="form-group">
+    <div class="form-row">
+      <input id="f-title" class="form-val-big" placeholder="Что надо сделать? (и сделай, а не просто запиши)" style="flex:1;" />
+      <button id="v-btn" class="voice-form-btn" onclick="toggleVoice()">🎤</button>
+    </div>
+    <div id="rec-indicator" style="display:none;" class="form-row" style="background:var(--terra-l);">
+      <span style="font-size:12px;color:var(--terra);font-weight:700;">🔴 Слушаю...</span>
+    </div>
+    <div class="form-row">
+      <span class="form-lbl">Icon</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="f-icon-prev" style="font-size:22px;">📌</span>
+        <button onclick="toggleIcons()" style="background:var(--terra-l);border:none;border-radius:var(--r-pill);padding:6px 14px;font-size:12px;font-weight:700;color:var(--terra2);">Edit</button>
+      </div>
+    </div>
+  </div>
+  <div id="icon-panel" style="display:none;margin-top:6px;"><div class="icon-strip" id="icon-grid"></div></div>
+
+  <div class="form-section-label">Category</div>
+  <div class="form-group"><div class="pill-sel-wrap" id="f-cat-pills"></div></div>
+
+  <div class="form-section-label">Priority</div>
+  <div class="form-group">
+    <div class="pill-sel-wrap">
+      <button class="f-pill" data-p="high" onclick="setPrio('high',this)">🟠 Высокий</button>
+      <button class="f-pill on" data-p="medium" onclick="setPrio('medium',this)">🔵 Средний</button>
+      <button class="f-pill f-pill-teal" data-p="low" onclick="setPrio('low',this)">🟢 Низкий</button>
+    </div>
+  </div>
+
+  <div class="form-section-label">Date</div>
+  <div class="form-group">
+    <div class="form-row"><input type="date" id="f-date" class="form-val-big" style="flex:1;" /></div>
+  </div>
+
+  <div class="form-section-label">Time</div>
+  <div class="form-group">
+    <div class="time-wrap">
+      <div class="time-box"><label>С</label><input type="time" id="f-ts" /></div>
+      <div class="time-dash">—</div>
+      <div class="time-box"><label>ДО</label><input type="time" id="f-te" /></div>
+    </div>
+  </div>
+
+  <div class="form-section-label">Repeat</div>
+  <div class="form-group"><div class="pill-sel-wrap" id="f-rec-pills"></div></div>
+
+  <div class="form-section-label">Location</div>
+  <div class="form-group">
+    <div class="form-row">
+      <input id="f-loc" class="form-val-l" placeholder="Поиск места..." oninput="searchLoc(this.value)" style="flex:1;" />
+      <button onclick="useGPS()" style="background:var(--teal-l);border:none;border-radius:50%;width:34px;height:34px;font-size:16px;flex-shrink:0;">📍</button>
+    </div>
+  </div>
+  <div id="loc-results" class="loc-results" style="display:none;"></div>
+  <div id="loc-selected" class="loc-sel" style="display:none;">
+    <div class="loc-sel-name" id="loc-sel-name"></div>
+    <div class="loc-sel-addr" id="loc-sel-addr"></div>
+    <div class="loc-sel-btns">
+      <button class="loc-btn loc-btn-primary" onclick="openLocMaps()">🗺 Карта</button>
+      <button class="loc-btn loc-btn-ghost" onclick="clearLoc()">Remove</button>
+    </div>
+  </div>
+
+  <div class="form-section-label">For</div>
+  <div class="form-group"><div class="pill-sel-wrap" id="f-member-pills"></div></div>
+
+  <div class="form-section-label">Reminder</div>
+  <div class="form-group">
+    <div class="form-row">
+      <select id="f-reminder" class="form-select" style="flex:1;font-size:15px;">
+        <option value="">None</option>
+        <option value="5">5 min before</option>
+        <option value="15">15 min before</option>
+        <option value="30">30 min before</option>
+        <option value="60">1 hour before</option>
+        <option value="1440">1 day before</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-section-label">Note</div>
+  <div class="form-group">
+    <div class="form-row" style="align-items:flex-start;">
+      <textarea id="f-note" class="form-val-l" placeholder="Детали, напоминания, мысли..." style="min-height:76px;resize:none;line-height:1.5;padding:2px 0;font-size:15px;"></textarea>
+    </div>
+  </div>
+
+  <div id="del-btn-wrap" style="display:none;padding:0 16px;">
+    <button onclick="deleteTask()" style="width:100%;margin-top:12px;background:var(--cream);border:1.5px solid #e8c4b8;border-radius:var(--r);padding:15px;font-size:16px;font-weight:600;color:#a84444;box-shadow:var(--shadow);">Delete task</button>
+  </div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- ══ DETAIL ══ -->
+<div id="screen-detail" class="screen">
+  <div class="detail-head">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <button onclick="goto('home')" style="background:var(--cream);border:none;border-radius:var(--r-pill);padding:9px 16px;font-size:15px;font-weight:600;color:var(--terra);box-shadow:var(--shadow);">‹ Back</button>
+      <button onclick="editCurrent()" style="background:var(--cream);border:none;border-radius:var(--r-pill);padding:9px 16px;font-size:14px;font-weight:600;color:var(--text2);box-shadow:var(--shadow);">Edit</button>
+    </div>
+    <div id="d-emoji-wrap" class="detail-emoji-wrap bloom"><span id="d-emoji" style="font-size:36px;"></span></div>
+    <div id="d-title" class="detail-title"></div>
+    <div id="d-badges" class="detail-badge-row"></div>
+  </div>
+  <div id="d-info-card" class="detail-info"></div>
+  <div class="detail-btns">
+    <div id="d-map-wrap" style="display:none;">
+      <button class="d-map-btn" onclick="openNavigation()">🗺 Открыть в картах</button>
+    </div>
+    <button id="d-done-btn" onclick="toggleCurrentDone()" class="d-done-btn pending"></button>
+  </div>
+</div>
+
+<!-- ══ CALENDAR ══ -->
+<div id="screen-calendar" class="screen">
+  <div class="cal-head">
+    <div class="page-eyebrow" id="cal-title">Schedule</div>
+    <div class="cal-title-row">
+      <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
+      <div id="cal-label" class="cal-label"></div>
+      <button class="cal-nav-btn" onclick="calShift(1)">›</button>
+      <button class="today-btn" onclick="calGoToday()">Today</button>
+    </div>
+    <div class="segment" style="margin:14px 0 0;">
+      <button class="seg-btn on" id="cvb-day" onclick="setCalView('day')">Day</button>
+      <button class="seg-btn" id="cvb-week" onclick="setCalView('week')">Week</button>
+      <button class="seg-btn" id="cvb-month" onclick="setCalView('month')">Month</button>
+    </div>
+  </div>
+
+  <div id="cv-day">
+    <div id="day-strip" class="day-strip"></div>
+    <div id="tl-body" class="tl-wrap"></div>
+  </div>
+  <div id="cv-week" style="display:none;flex-direction:column;">
+    <div id="wk-head-row" class="wk-head"></div>
+    <div id="wk-body" style="overflow-y:auto;"></div>
+  </div>
+  <div id="cv-month" style="display:none;">
+    <div class="mn-grid" id="mn-grid"></div>
+    <div id="mn-events" class="mn-events"></div>
+  </div>
+</div>
+
+<!-- ══ CATS ══ -->
+<div id="screen-cats" class="screen">
+  <div class="page-header" style="padding-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button onclick="goto('home')" style="background:none;border:none;font-size:16px;font-weight:600;color:var(--terra);">‹ Back</button>
+      <button onclick="showAddCat()" style="background:var(--terra);border:none;border-radius:var(--r-pill);padding:8px 16px;font-size:13px;font-weight:700;color:white;box-shadow:0 2px 10px rgba(196,125,82,0.3);"><span id="btn-new-cat">+ New</span></button>
+    </div>
+    <div class="page-title" style="font-size:28px;margin-top:6px;" id="cats-title">Tags</div>
+  </div>
+  <div style="height:12px;"></div>
+  <div class="cat-screen-card" id="cat-screen-list"></div>
+  <div id="add-cat-panel" style="display:none;padding:0 16px;margin-top:16px;">
+    <div class="form-group"><div class="form-row"><input id="new-cat-name" class="form-val-big" placeholder="Название..." /></div></div>
+    <div style="margin-top:10px;"><div class="icon-strip" id="new-cat-icons"></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 0;" id="new-cat-colors"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button onclick="addCategory()" style="flex:1;background:var(--terra);border:none;border-radius:var(--r);padding:14px;font-size:16px;font-weight:700;color:white;box-shadow:0 2px 12px rgba(196,125,82,0.3);">Add</button>
+      <button onclick="document.getElementById('add-cat-panel').style.display='none'" style="background:var(--cream);border:none;border-radius:var(--r);padding:14px 20px;font-size:15px;font-weight:600;color:var(--text3);box-shadow:var(--shadow);">Cancel</button>
+    </div>
+  </div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div id="screen-settings" class="screen">
+  <div class="page-header" style="padding-bottom:16px;">
+    <button onclick="goto('home')" style="background:none;border:none;font-size:16px;font-weight:600;color:var(--terra);">‹ Back</button>
+    <div class="page-title" style="font-size:28px;margin-top:6px;" id="settings-title">Settings</div>
+  </div>
+  <div class="form-section-label" id="s-lang-lbl">Language</div>
+  <div class="settings-section">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px;">
+      <button onclick="changeLang('en')" id="lng-en" style="border:2px solid var(--terra);border-radius:12px;padding:10px 4px;background:var(--terra);color:white;font-size:13px;font-weight:600;cursor:pointer;">🇬🇧<br>EN</button>
+      <button onclick="changeLang('ru')" id="lng-ru" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇷🇺<br>RU</button>
+      <button onclick="changeLang('sr')" id="lng-sr" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇷🇸<br>SR</button>
+      <button onclick="changeLang('de')" id="lng-de" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇩🇪<br>DE</button>
+      <button onclick="changeLang('fr')" id="lng-fr" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇫🇷<br>FR</button>
+      <button onclick="changeLang('es')" id="lng-es" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇪🇸<br>ES</button>
+      <button onclick="changeLang('pt')" id="lng-pt" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇧🇷<br>PT</button>
+      <button onclick="changeLang('ro')" id="lng-ro" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🇷🇴<br>RO</button>
+    </div>
+  </div>
+  <div class="form-section-label" id="s-theme-lbl">Theme</div>
+  <div class="settings-section">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px;">
+      <button onclick="changeTheme('sand')"   id="th-sand"   style="border:2px solid var(--terra);border-radius:12px;padding:10px 4px;background:var(--terra);color:white;font-size:13px;font-weight:600;cursor:pointer;">🏜️<br>Sand</button>
+      <button onclick="changeTheme('dark')"   id="th-dark"   style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🌙<br>Dark</button>
+      <button onclick="changeTheme('forest')" id="th-forest" style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🌲<br>Forest</button>
+      <button onclick="changeTheme('ocean')"  id="th-ocean"  style="border:2px solid var(--warm);border-radius:12px;padding:10px 4px;background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;">🌊<br>Ocean</button>
+    </div>
+  </div>
+  <div class="form-section-label" id="s-family-lbl">Family</div>
+  <div class="settings-section" id="member-list"></div>
+  <div style="padding:8px 16px 16px;">
+    <div style="display:flex;gap:8px;">
+      <input id="new-member" style="flex:1;background:var(--cream);border:none;border-radius:var(--r);padding:13px 18px;font-size:16px;font-weight:500;color:var(--text);box-shadow:var(--shadow);" placeholder="Add member..." />
+      <button onclick="addMember()" ontouchend="addMember()" style="background:var(--terra);border:none;border-radius:var(--r);padding:13px 22px;font-size:16px;font-weight:700;color:white;box-shadow:0 2px 12px rgba(196,125,82,0.3);">+</button>
+    </div>
+  </div>
+  <div class="form-section-label" id="s-system-lbl">System</div>
+  <div class="settings-section">
+    <div class="settings-row" onclick="requestNotif()">
+      <div class="settings-icon" style="background:var(--terra-l);">🔔</div>
+      <div style="flex:1;"><div class="settings-title">Notifications</div><div class="settings-sub">Push notifications for tasks</div></div>
+      <span class="settings-chevron">›</span>
+    </div>
+    <div class="settings-row" onclick="exportData()">
+      <div class="settings-icon" style="background:var(--teal-l);">📤</div>
+      <div style="flex:1;"><div class="settings-title">Export data</div><div class="settings-sub">Download JSON</div></div>
+      <span class="settings-chevron">›</span>
+    </div>
+    <div class="settings-row" onclick="clearDone()" style="border-bottom:none;">
+      <div class="settings-icon" style="background:#fdecea;">🗑️</div>
+      <div style="flex:1;"><div class="settings-title" style="color:#a84444;">Clear completed</div></div>
+      <span class="settings-chevron" style="color:#a84444;">›</span>
+    </div>
+  </div>
+  <div class="form-section-label" id="s-tips-lbl">ADHD Tips</div>
+  <div class="settings-section" id="tips-list"></div>
+  <div style="height:20px;"></div>
+</div>
+
+<!-- FAB -->
+<button id="fab" onclick="openAdd()">+</button>
+
+<!-- TAB BAR -->
+<div id="tab-bar">
+  <button class="tb-btn on" onclick="switchNav('home',this)"><span class="tb-icon">📋</span><span class="tb-label" id="tab-home-lbl">Tasks</span></button>
+  <button class="tb-btn" onclick="switchNav('calendar',this)"><span class="tb-icon">🗓️</span><span class="tb-label" id="tab-cal-lbl">Timeline</span></button>
+  <button class="tb-btn" onclick="switchNav('cats',this)"><span class="tb-icon">🏷️</span><span class="tb-label" id="tab-cats-lbl">Tags</span></button>
+  <button class="tb-btn" onclick="switchNav('settings',this)"><span class="tb-icon">⚙️</span><span class="tb-label" id="tab-set-lbl">Settings</span></button>
+</div>
+<div id="toast"></div>
+</div>
+
+
+<div id="quick-picker" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" data-action="closeQuickPicker">
+  <div id="qp-sheet" data-action="stopProp" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--bg);border-radius:28px 28px 0 0;padding:20px 16px 48px;max-height:85dvh;overflow-y:auto;">
+    <div style="width:36px;height:4px;background:var(--warm);border-radius:2px;margin:0 auto 20px;"></div>
+    <div id="qp-title" style="font-family:'Georgia','Times New Roman',serif;font-size:20px;font-weight:600;color:var(--text);padding:0 8px 14px;"></div>
+    <div id="qp-body"></div>
+  </div>
+</div>
+
+</div>
+<script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const L = {
+ru:{s_title:'Настройки',lang_applied:'Русский ✓',s_lang_lbl:'Язык',s_theme_lbl:'Тема',s_family_lbl:'Семья',
+  // onboarding
+  ob0t:'Привет!',ob0s:'Как тебя зовут? Буду обращаться лично.',ob0ph:'Твоё имя...',
+  ob1t:'Язык',ob1s:'На каком языке удобнее?',
+  ob2t:'Тема',ob2s:'Выбери оформление',
+  ob3t:'Стиль',ob3s:'Как приложение должно говорить с тобой?',
+  obhkn:'Мягко',obhkd:'Поддержка и тёплые слова',
+  obhsn:'С сарказмом',obhsd:'Мотивирует через подколы',
+  ob_finish:'✓ Начать',ob_next:'Дальше →',
+  // tabs/nav
+  tab_today:'Сегодня',tab_all:'Все',tab_done:'Готово',
+  nav_tasks:'Задачи',nav_cal:'Таймлайн',nav_cats:'Теги',nav_sett:'Настройки',
+  // home
+  home_title:'Мой\nдень',s_today:'Сегодня',s_all:'Всего',s_done:'Готово',
+  filter_all:'Все',
+  // form
+  f_cancel:'Отмена',f_save:'Готово',f_new:'Новая задача',f_edit_task:'Редактировать',
+  fl_main:'Основное',fl_icon:'Иконка',fl_change:'Изменить',fl_cat:'Категория',
+  fl_prio:'Приоритет',fp_hi:'🟠 Высокий',fp_md:'🔵 Средний',fp_lo:'🟢 Низкий',
+  fl_date:'Дата',fl_time:'Время',fl_from:'С',fl_to:'ДО',
+  fl_rec:'Повтор',fl_place:'Место',fl_place_ph:'Поиск места...',
+  fl_who:'Кому',fl_remind:'Напоминание',fl_note:'Заметка',
+  f_note_ph:'Детали, мысли...',f_title_ph:'Что надо сделать? (и сделай, не просто запиши)',
+  f_delete:'Удалить задачу',
+  rem:{'':'Нет','5':'За 5 минут','15':'За 15 минут','30':'За 30 минут','60':'За 1 час','1440':'За день'},
+  rec_none:'Нет',rec_day:'Каждый день',rec_week:'Каждую неделю',rec_month:'Каждый месяц',
+  // detail
+  d_back:'‹ Назад',d_edit:'Изменить',d_done:'✓ Выполнено',d_undone:'↩ Вернуть',
+  d_date:'Дата',d_rec:'Повтор',d_place:'Место',d_note:'Заметка',
+  // calendar
+  cal_eyebrow:'Расписание',cal_today:'Сегодня',
+  cv_day:'День',cv_week:'Неделя',cv_month:'Месяц',
+  cal_notime:'Без времени',cal_free:'Свободный день',
+  // cats
+  cats_title:'Категории',cat_new:'+ Новая',cat_add:'Добавить',cat_cancel:'Отмена',cat_ph:'Название...',
+  // settings
+  s_title:'Настройки',sl_lang:'Язык',sl_theme:'Тема',sl_style:'Стиль общения',
+  sl_gender:'Обращение',
+  sl_fam:'Семья',s_sys:'Система',s_tips_title:'Советы при СДВГ',
+  s_notif:'Уведомления',s_notif_sub:'Push-уведомления о задачах',
+  s_export:'Экспорт данных',s_clear:'Очистить выполненные',
+  s_kind_lbl:'Мягкий',s_sar_lbl:'С сарказмом',
+  member_ph:'Добавить участника...',
+  lb_map:'🗺 Карта',lb_clear:'Убрать',
+  // default cat names
+  cat_work:'Работа',cat_home:'Дом',cat_health:'Медицина',cat_kids:'Дети',cat_personal:'Личное',
+  prio_hi:'Высокий',prio_md:'Средний',prio_lo:'Низкий',
+  th_sand:'🌿 Тёплый',th_dark:'🌙 Тёмный',th_forest:'🌲 Лес',th_ocean:'🌊 Океан',
+  // greetings
+  greet_m_kind:['Доброе утро ☀️','С добрым утром! 🌿','Новый день — новые шансы ✨','Утро! Ты справишься ☀️'],
+  greet_d_kind:['Добрый день 👋','Как ты? Держишься? 🌿','Полдень — ты справляешься 💛','Всё хорошо 😊'],
+  greet_e_kind:['Добрый вечер 🌙','Вечер! Ты сегодня справился 💛','Почти финиш — молодец 🌙','Хороший день ✨'],
+  greet_m_sar:['☀️ Подъём. Список ждёт.','🌅 Кофе выпил? Теперь к делу.','😴→😤 Проснулся. Молодец. Дальше сложнее.','🚀 Новый день, те же задачи. Погнали!'],
+  greet_d_sar:['👀 Полдень. Что сделано? Считаем.','😏 Надеюсь, ты не просто скроллишь.','⏳ День на половине. Ты на сколько?','🎯 Середина дня — самое время взяться.'],
+  greet_e_sar:['🌙 Вечер. Сколько галочек? Честно.','😬 Итоги дня. Готов к правде?','🦉 Вечер! Завтра — не мусорка для задач.','😄 Ну что, сколько перенёс на завтра?'],
+  // empty
+  empty_today_kind:['Сегодня пусто — свободный день! 🌿','Список чист ✨','Задач нет. Наслаждайся 😊'],
+  empty_all_kind:['Всё чисто! Добавь что-нибудь 🌱','Пусто — чистый лист!','Задач нет. Дзен 😌'],
+  empty_done_kind:['Первая галочка — самая сладкая 💛','Выполненных пока нет — всё впереди!','Скоро будет зал славы 🏆'],
+  empty_today_sar:['Пусто. Точно ничего не забыл? 🤔','Список пуст. Либо дзен, либо отрицание.','Ни одной задачи. Подозрительно чисто 🧐'],
+  empty_all_sar:['Совсем пусто. Ты или эффективен, или Netflix.','Ни одной. Запиши хоть «не терять телефон».','Tabula rasa. Звучит красиво, выглядит как прокрастинация 😄'],
+  empty_done_sar:['Пока ноль. Но ведь ты «почти начал»? 😏','Выполненных нет. Первая галочка — самая сладкая!','Зал славы. Когда-нибудь 🏆'],
+  // toasts
+  t_create_kind:['Записано! Первый шаг 🌿','Добавлено 💛','Отличная задача 🌸'],
+  t_edit_kind:['Обновлено 💛','Сохранено ✨','Исправлено — молодец!'],
+  t_done_kind:['✓ Сделано! Молодец 🌸','✓ Выполнено! Так и знал 💛','✓ Маленькая победа тоже победа ✨'],
+  t_undone_kind:['Вернули — без осуждений 🌿','Ещё успеешь 💛','Возвращено 🌸'],
+  t_del_kind:['Удалено. Иногда отпустить — правильно 🌿','Убрали! Список легче 💨','Удалено ✨'],
+  t_create_sar:['Записано. Теперь осталось сделать 😏','Добавлено! Смелый поступок.','В списке. Теперь не отвертишься 🎯'],
+  t_edit_sar:['Исправлено. Совершенство недостижимо, попытка засчитана.','Обновлено! Теперь точно сделаешь?','Сохранено. Версия 2.0 😏'],
+  t_done_sar:['✓ О, ты сделал это! Я почти не сомневался 😏','✓ Выполнено! Вот это поворот!','✓ Видишь — не так страшно было 😄'],
+  t_undone_sar:['Вернули. Ладно, ещё один шанс 😏','Возвращено. Без осуждений, но с ожиданиями 😄','Окей, ещё раз. В этот раз точно 😌'],
+  t_del_sar:['Удалено. Задача была нежизнеспособна 👋','Прощай, задача. RIP 😄','Удалено. Притворимся, что этого не было.'],
+  urgent_kind:['🌟 Важно','⚡ Приоритет','🎯 Сегодня!','💫 Не забудь'],
+  urgent_sar:['🔥 Ещё вчера','😬 Давно пора','⚡ Ну сколько можно','🚨 СЕРЬЁЗНО'],
+  tips_kind:['Открыл приложение — это уже первый шаг 💛','Помодоро: 25 мин работы, 5 мин отдыха 🍅','Большую задачу разбей на кусочки 🌿','Напоминание за 15 мин — подарок себе ⏰','Каждая галочка — маленькая победа!','Ты справляешься лучше, чем думаешь 💛'],
+  tips_sar:['Открыл приложение. Первый шаг. Теперь не закрывай 😏','Помодоро: 25 мин работы, 5 мин делаешь вид что отдыхаешь','Задача висит третий день? Сделай или удали. Пощады нет.','Напоминание за 15 мин = вчера ты верил в себя ⏰','Каждая галочка = дофамин. Нейробиология 🧠','СДВГ — суперсила. Иногда сложно найти, но она там 💪'],
+  months:['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+  ms:['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'],
+  dow:['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],dows:['пн','вт','ср','чт','пт','сб','вс'],
+  loc:'ru-RU',
+},
+en:{s_title:'Settings',lang_applied:'English ✓',s_lang_lbl:'Language',s_theme_lbl:'Theme',s_family_lbl:'Family',
+  ob0t:'Hello!',ob0s:"What's your name? I'll address you personally.",ob0ph:'Your name...',
+  ob1t:'Language',ob1s:'Which language do you prefer?',
+  ob2t:'Theme',ob2s:'Choose your style',
+  ob3t:'Tone',ob3s:'How should the app talk to you?',
+  obhkn:'Gentle',obhkd:'Support and warm words',
+  obhsn:'Sarcastic',obhsd:'Motivation through teasing',
+  ob_finish:"✓ Let's go",ob_next:'Next →',
+  tab_today:'Today',tab_all:'All',tab_done:'Done',
+  nav_tasks:'Tasks',nav_cal:'Timeline',nav_cats:'Tags',nav_sett:'Settings',
+  home_title:'My\nday',s_today:'Today',s_all:'Total',s_done:'Done',filter_all:'All',
+  f_cancel:'Cancel',f_save:'Done',f_new:'New task',f_edit_task:'Edit',
+  fl_main:'Main',fl_icon:'Icon',fl_change:'Change',fl_cat:'Category',
+  fl_prio:'Priority',fp_hi:'🟠 High',fp_md:'🔵 Medium',fp_lo:'🟢 Low',
+  fl_date:'Date',fl_time:'Time',fl_from:'From',fl_to:'To',
+  fl_rec:'Repeat',fl_place:'Location',fl_place_ph:'Search place...',
+  fl_who:'Who',fl_remind:'Reminder',fl_note:'Note',
+  f_note_ph:'Details, thoughts...',f_title_ph:"What needs to be done?",
+  f_delete:'Delete task',
+  rem:{'':'None','5':'5 min before','15':'15 min before','30':'30 min before','60':'1 hour before','1440':'1 day before'},
+  rec_none:'Never',rec_day:'Every day',rec_week:'Every week',rec_month:'Every month',
+  d_back:'‹ Back',d_edit:'Edit',d_done:'✓ Mark done',d_undone:'↩ Reopen',
+  d_date:'Date',d_rec:'Repeat',d_place:'Location',d_note:'Note',
+  cal_eyebrow:'Schedule',cal_today:'Today',
+  cv_day:'Day',cv_week:'Week',cv_month:'Month',
+  cal_notime:'No time',cal_free:'Free day',
+  cats_title:'Categories',cat_new:'+ New',cat_add:'Add',cat_cancel:'Cancel',cat_ph:'Name...',
+  s_title:'Settings',sl_lang:'Language',sl_theme:'Theme',sl_style:'Communication',
+  sl_gender:'Pronoun',
+  sl_fam:'Family',s_sys:'System',s_tips_title:'ADHD Tips',
+  s_notif:'Notifications',s_notif_sub:'Push notifications for tasks',
+  s_export:'Export data',s_clear:'Clear completed',
+  s_kind_lbl:'Gentle',s_sar_lbl:'Sarcastic',
+  member_ph:'Add member...',lb_map:'🗺 Map',lb_clear:'Remove',
+  cat_work:'Work',cat_home:'Home',cat_health:'Health',cat_kids:'Kids',cat_personal:'Personal',
+  prio_hi:'High',prio_md:'Medium',prio_lo:'Low',
+  th_sand:'🌿 Warm',th_dark:'🌙 Dark',th_forest:'🌲 Forest',th_ocean:'🌊 Ocean',
+  greet_m_kind:['Good morning ☀️','Fresh start! 🌿','New day, new chances ✨',"Morning! You've got this ☀️"],
+  greet_d_kind:['Good afternoon 👋','How are you? 🌿',"Midday — you're doing great 💛",'Keep going 😊'],
+  greet_e_kind:['Good evening 🌙','Evening! Great job today 💛','Almost done — well done 🌙','Good day ✨'],
+  greet_m_sar:['☀️ Rise. The list is waiting.','🌅 Coffee done? Now get to work.',"😴→😤 You're up. Good. It gets harder.","🚀 New day, same tasks. Let's go!"],
+  greet_d_sar:["👀 Noon. What's done? Counting.","😏 Hope you're not just scrolling.",'⏳ Halfway through. Where are you?','🎯 Perfect time to actually start.'],
+  greet_e_sar:['🌙 Evening. How many checkmarks? Honestly.',"😬 Day's end. Ready for the truth?","🦉 Evening! Tomorrow isn't a trash bin.",'😄 How many did you move to tomorrow?'],
+  empty_today_kind:['Empty today — enjoy! 🌿','List is clear ✨','No tasks. Just breathe 😊'],
+  empty_all_kind:['All clear! Add something 🌱','Fresh start!','No tasks. Very zen 😌'],
+  empty_done_kind:['First checkmark is sweetest 💛',"Nothing yet — it's all ahead!",'Hall of fame coming 🏆'],
+  empty_today_sar:['Empty. Sure you forgot nothing? 🤔','Clean list. Zen or denial.','No tasks. Suspiciously clean 🧐'],
+  empty_all_sar:['Nothing. Very efficient — or Netflix.',"No tasks. Add at least \"don't lose phone\".",'Tabula rasa. Sounds nice, looks like procrastination 😄'],
+  empty_done_sar:["Zero. But you've \"almost started\", right? 😏",'Nothing done. First checkmark is sweetest!','Hall of fame. Eventually 🏆'],
+  t_create_kind:['Saved! First step 🌿','Added 💛','Great task 🌸'],
+  t_edit_kind:['Updated 💛','Saved ✨','Fixed — good job!'],
+  t_done_kind:['✓ Done! Well done 🌸',"✓ Completed! Knew you'd manage 💛",'✓ Small win is still a win ✨'],
+  t_undone_kind:['Reopened — no judgment 🌿','Still time 💛','Back in queue 🌸'],
+  t_del_kind:['Deleted. Sometimes letting go is right 🌿','Removed! List is lighter 💨','Deleted ✨'],
+  t_create_sar:['Saved. Now you just have to do it 😏','Added! Bold move.','On the list. No escape 🎯'],
+  t_edit_sar:['Fixed. Perfection is overrated.','Updated! Will you actually do it?','Saved. Task v2.0 😏'],
+  t_done_sar:['✓ You actually did it! Almost surprised 😏','✓ Done! Plot twist!',"✓ See? Wasn't that scary 😄"],
+  t_undone_sar:['Reopened. One more chance 😏','Back. No judgment, but expectations 😄','Again. This time for real 😌'],
+  t_del_sar:['Deleted. Task had no chance 👋','Goodbye task. RIP 😄',"Deleted. Let's pretend it never happened."],
+  urgent_kind:['🌟 Important','⚡ Priority','🎯 Today!',"💫 Don't forget"],
+  urgent_sar:['🔥 Overdue','😬 Long overdue','⚡ Come on already','🚨 SERIOUSLY'],
+  tips_kind:["Opened the app — that's step one 💛",'Pomodoro: 25 min work, 5 min rest 🍅','Break big tasks into pieces 🌿','15-min reminder = gift to yourself ⏰','Every checkmark = small victory!',"You're doing better than you think 💛"],
+  tips_sar:["Opened app. Step one. Don't close it 😏",'Pomodoro: 25 min work, 5 min pretend to rest','Task sitting 3 days? Do it or delete it. No mercy.','15-min reminder = past-you believed in you ⏰',"Each checkmark = dopamine. That's neuroscience 🧠","ADHD is a superpower. Hard to find, but it's there 💪"],
+  months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+  ms:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  dow:['Mo','Tu','We','Th','Fr','Sa','Su'],dows:['mo','tu','we','th','fr','sa','su'],
+  loc:'en-US',
+},
+sr:{s_title:'Podešavanja',lang_applied:'Srpski ✓',s_lang_lbl:'Jezik',s_theme_lbl:'Tema',s_family_lbl:'Porodica',
+  ob0t:'Zdravo!',ob0s:'Kako se zoveš? Obraćaću ti se lično.',ob0ph:'Tvoje ime...',
+  ob1t:'Jezik',ob1s:'Koji jezik preferiraš?',
+  ob2t:'Tema',ob2s:'Izaberi stil po ukusu',
+  ob3t:'Stil',ob3s:'Kako aplikacija treba da razgovara s tobom?',
+  obhkn:'Nežno',obhkd:'Podrška i tople reči',
+  obhsn:'Sa sarkazmom',obhsd:'Motivacija kroz zadirkivanje',
+  ob_finish:'✓ Počni',ob_next:'Dalje →',
+  tab_today:'Danas',tab_all:'Svi',tab_done:'Urađeno',
+  nav_tasks:'Zadaci',nav_cal:'Raspored',nav_cats:'Oznake',nav_sett:'Podešavanja',
+  home_title:'Moj\ndan',s_today:'Danas',s_all:'Ukupno',s_done:'Urađeno',filter_all:'Svi',
+  f_cancel:'Otkaži',f_save:'Gotovo',f_new:'Novi zadatak',f_edit_task:'Uredi',
+  fl_main:'Osnovno',fl_icon:'Ikona',fl_change:'Promeni',fl_cat:'Kategorija',
+  fl_prio:'Prioritet',fp_hi:'🟠 Visok',fp_md:'🔵 Srednji',fp_lo:'🟢 Nizak',
+  fl_date:'Datum',fl_time:'Vreme',fl_from:'Od',fl_to:'Do',
+  fl_rec:'Ponavljanje',fl_place:'Lokacija',fl_place_ph:'Pretraži mesto...',
+  fl_who:'Ko',fl_remind:'Podsetnik',fl_note:'Napomena',
+  f_note_ph:'Detalji, misli...',f_title_ph:'Šta treba uraditi?',
+  f_delete:'Obriši zadatak',
+  rem:{'':'Bez','5':'5 min pre','15':'15 min pre','30':'30 min pre','60':'1 sat pre','1440':'1 dan pre'},
+  rec_none:'Nikad',rec_day:'Svaki dan',rec_week:'Svake nedelje',rec_month:'Svakog meseca',
+  d_back:'‹ Nazad',d_edit:'Uredi',d_done:'✓ Označi',d_undone:'↩ Vrati',
+  d_date:'Datum',d_rec:'Ponavljanje',d_place:'Lokacija',d_note:'Napomena',
+  cal_eyebrow:'Raspored',cal_today:'Danas',
+  cv_day:'Dan',cv_week:'Nedelja',cv_month:'Mesec',
+  cal_notime:'Bez vremena',cal_free:'Slobodan dan',
+  cats_title:'Kategorije',cat_new:'+ Nova',cat_add:'Dodaj',cat_cancel:'Otkaži',cat_ph:'Naziv...',
+  s_title:'Podešavanja',sl_lang:'Jezik',sl_theme:'Tema',sl_style:'Stil komunikacije',
+  sl_gender:'Obraćanje',
+  sl_fam:'Porodica',s_sys:'Sistem',s_tips_title:'ADHD saveti',
+  s_notif:'Obaveštenja',s_notif_sub:'Push obaveštenja',
+  s_export:'Izvoz podataka',s_clear:'Obriši urađene',
+  s_kind_lbl:'Nežno',s_sar_lbl:'Sa sarkazmom',
+  member_ph:'Dodaj člana...',lb_map:'🗺 Mapa',lb_clear:'Ukloni',
+  cat_work:'Posao',cat_home:'Dom',cat_health:'Zdravlje',cat_kids:'Deca',cat_personal:'Lično',
+  prio_hi:'Visok',prio_md:'Srednji',prio_lo:'Nizak',
+  th_sand:'🌿 Toplo',th_dark:'🌙 Tamno',th_forest:'🌲 Šuma',th_ocean:'🌊 Okean',
+  greet_m_kind:['Dobro jutro ☀️','Jutro! 🌿','Nov dan, nove prilike ✨','Ustao si. Pobeda ☀️'],
+  greet_d_kind:['Dobar dan 👋','Kako si? 🌿','Polovina dana — heroj 💛','Samo napred 😊'],
+  greet_e_kind:['Dobro veče 🌙','Veče! Odlično si danas 💛','Skoro kraj — bravo 🌙','Dobar dan ✨'],
+  greet_m_sar:['☀️ Ustani. Lista čeka.','🌅 Kafa gotova? Na posao.','😴→😤 Ustao si. Bravo. Dalje teže.','🚀 Nov dan, isti zadaci. Hajde!'],
+  greet_d_sar:['👀 Podne. Šta urađeno? Brojimo.','😏 Nadam se da ne samo skrolaš.','⏳ Polovina dana. Gde si?','🎯 Idealno vreme da počneš.'],
+  greet_e_sar:['🌙 Veče. Koliko kvačica? Iskreno.','😬 Kraj dana. Spreman za istinu?','🦉 Veče! Sutra nije kanta za danas.','😄 Koliko si prebacio za sutra?'],
+  empty_today_kind:['Prazno danas! 🌿','Lista je čista ✨','Nema zadataka. Uživaj 😊'],
+  empty_all_kind:['Sve čisto! Dodaj nešto 🌱','Prazan list!','Nema zadataka. Zen 😌'],
+  empty_done_kind:['Prva kvačica je najslađa 💛','Sve je pred tobom!','Zal slave dolazi 🏆'],
+  empty_today_sar:['Prazno. Siguran si? 🤔','Zen ili poricanje.','Ništa. Sumnjivo čisto 🧐'],
+  empty_all_sar:['Prazno. Efikasan ili Netflix.','Nijedan. Dodaj \"ne izgubi telefon\".','Tabula rasa. Lepo zvuči, liči na prokrastinaciju 😄'],
+  empty_done_sar:['Nula. Al si \"skoro počeo\"? 😏','Ništa urađeno. Prva kvačica!','Zal slave dolazi. Nekad. 🏆'],
+  t_create_kind:['Sačuvano! 🌿','Dodato 💛','Odličan zadatak 🌸'],
+  t_edit_kind:['Ažurirano 💛','Sačuvano ✨','Ispravljeno — bravo!'],
+  t_done_kind:['✓ Urađeno! Bravo 🌸','✓ Završeno! Znao sam 💛','✓ Mali uspeh je pobeda ✨'],
+  t_undone_kind:['Vraćeno — bez osude 🌿','Još ima vremena 💛','Nazad u red 🌸'],
+  t_del_kind:['Obrisano. Pustiti je pravo 🌿','Uklonjeno! Lista lakša 💨','Obrisano ✨'],
+  t_create_sar:['Zapisano. Sad treba uraditi 😏','Dodato! Hrabar potez.','Na listi. Nema bekstva 🎯'],
+  t_edit_sar:['Ispravljeno. Savršenstvo je precenjeno.','Ažurirano! Hoćeš li zaista?','Sačuvano. Zadatak v2.0 😏'],
+  t_done_sar:['✓ Zaista si to uradio! Skoro iznenađen 😏','✓ Urađeno! Preokret!','✓ Vidiš? Nije bilo strašno 😄'],
+  t_undone_sar:['Vraćeno. Još jedna šansa 😏','Bez osude, al s očekivanjima 😄','Ok, još jednom. Ovaj put stvarno 😌'],
+  t_del_sar:['Obrisano. Zadatak nije imao šanse 👋','Zbogom zadatku. RIP 😄','Zaboravimo.'],
+  urgent_kind:['🌟 Važno','⚡ Prioritet','🎯 Danas!','💫 Ne zaboravi'],
+  urgent_sar:['🔥 Kasno','😬 Odavno trebalo','⚡ Dokle više','🚨 OZBILJNO'],
+  tips_kind:['Otvorio app — to je već korak 💛','Pomodoro: 25 min rada, 5 min odmora 🍅','Veliki zadatak razdeli na delove 🌿','Podsetnik 15 min — poklon sebi ⏰','Svaka kvačica = mala pobeda!','Bolje si nego što misliš 💛'],
+  tips_sar:['Otvorio app. Korak jedan. Nemoj zatvoriti 😏','Pomodoro: 25 min rada, 5 min glumas da odmараš','Zadatak tri dana čeka? Uradi ili briši. Milosti nema.','Podsetnik 15 min = juče si verovao u sebe ⏰','Kvačica = dopamin. Neurobiologija 🧠','ADHD je supersila. Teško naći, al je tu 💪'],
+  months:['Januar','Februar','Mart','April','Maj','Jun','Jul','Avgust','Septembar','Oktobar','Novembar','Decembar'],
+  ms:['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'],
+  dow:['Po','Ut','Sr','Če','Pe','Su','Ne'],dows:['po','ut','sr','če','pe','su','ne'],
+  loc:'sr-RS',
+},
+ro:{s_title:'Setări',lang_applied:'Română ✓',s_lang_lbl:'Limbă',s_theme_lbl:'Temă',s_family_lbl:'Familie',
+  ob0t:'Bună!',ob0s:'Cum te cheamă? Voi folosi numele tău.',ob0ph:'Numele tău...',
+  ob1t:'Limbă',ob1s:'Ce limbă preferi?',
+  ob2t:'Temă',ob2s:'Alege stilul tău',
+  ob3t:'Ton',ob3s:'Cum ar trebui să vorbească cu tine?',
+  obhkn:'Blând',obhkd:'Suport și cuvinte calde',
+  obhsn:'Sarcastic',obhsd:'Motivație prin ironii',
+  ob_finish:'✓ Hai',ob_next:'Următor →',
+  tab_today:'Azi',tab_all:'Toate',tab_done:'Gata',
+  nav_tasks:'Sarcini',nav_cal:'Orar',nav_cats:'Etichete',nav_sett:'Setări',
+  home_title:'Ziua\nmea',s_today:'Azi',s_all:'Total',s_done:'Gata',filter_all:'Toate',
+  f_cancel:'Anulează',f_save:'Gata',f_new:'Sarcină nouă',f_edit_task:'Editează',
+  fl_main:'Principal',fl_icon:'Iconiță',fl_change:'Schimbă',fl_cat:'Categorie',
+  fl_prio:'Prioritate',fp_hi:'🟠 Înalt',fp_md:'🔵 Mediu',fp_lo:'🟢 Scăzut',
+  fl_date:'Dată',fl_time:'Timp',fl_from:'De la',fl_to:'Până la',
+  fl_rec:'Repetare',fl_place:'Locație',fl_place_ph:'Caută loc...',
+  fl_who:'Cine',fl_remind:'Reminder',fl_note:'Notă',
+  f_note_ph:'Detalii, gânduri...',f_title_ph:'Ce trebuie făcut?',
+  f_delete:'Șterge sarcina',
+  rem:{'':'Fără','5':'5 min înainte','15':'15 min înainte','30':'30 min înainte','60':'1 oră înainte','1440':'1 zi înainte'},
+  rec_none:'Niciodată',rec_day:'În fiecare zi',rec_week:'În fiecare săptămână',rec_month:'În fiecare lună',
+  d_back:'‹ Înapoi',d_edit:'Editează',d_done:'✓ Marchează',d_undone:'↩ Redeschide',
+  d_date:'Dată',d_rec:'Repetare',d_place:'Locație',d_note:'Notă',
+  cal_eyebrow:'Orar',cal_today:'Azi',
+  cv_day:'Zi',cv_week:'Săptămână',cv_month:'Lună',
+  cal_notime:'Fără timp',cal_free:'Zi liberă',
+  cats_title:'Categorii',cat_new:'+ Nouă',cat_add:'Adaugă',cat_cancel:'Anulează',cat_ph:'Nume...',
+  s_title:'Setări',sl_lang:'Limbă',sl_theme:'Temă',sl_style:'Stil comunicare',
+  sl_gender:'Pronume',
+  sl_gender:'Pronomen',
+  sl_fam:'Familie',s_sys:'Sistem',s_tips_title:'Sfaturi ADHD',
+  s_notif:'Notificări',s_notif_sub:'Notificări push',
+  s_export:'Export date',s_clear:'Șterge completate',
+  s_kind_lbl:'Blând',s_sar_lbl:'Sarcastic',
+  member_ph:'Adaugă membru...',lb_map:'🗺 Hartă',lb_clear:'Elimină',
+  cat_work:'Muncă',cat_home:'Acasă',cat_health:'Sănătate',cat_kids:'Copii',cat_personal:'Personal',
+  prio_hi:'Înalt',prio_md:'Mediu',prio_lo:'Scăzut',
+  th_sand:'🌿 Cald',th_dark:'🌙 Întunecat',th_forest:'🌲 Pădure',th_ocean:'🌊 Ocean',
+  greet_m_kind:['Bună dimineața ☀️','Dimineață frumoasă! 🌿','Zi nouă, șanse noi ✨','Ești treaz. Asta contează ☀️'],
+  greet_d_kind:['Bună ziua 👋','Cum ești? 🌿','Jumătate de zi — ești erou 💛','Continuă! 😊'],
+  greet_e_kind:['Bună seara 🌙','Seara! Ai făcut bine azi 💛','Aproape gata — bravo 🌙','Zi frumoasă ✨'],
+  greet_m_sar:['☀️ Scoală-te. Lista te așteaptă.','🌅 Cafeaua gata? La treabă.','😴→😤 Te-ai trezit. Bravo. Urmează mai greu.','🚀 Zi nouă, aceleași sarcini. Hai!'],
+  greet_d_sar:['👀 Prânz. Ce s-a făcut? Numărăm.','😏 Sper că nu dai doar scroll.','⏳ Jumătate de zi. Tu pe unde ești?','🎯 Momentul perfect să începi.'],
+  greet_e_sar:['🌙 Seara. Câte bifă? Sincer.','😬 Sfârșitul zilei. Pregătit de adevăr?','🦉 Seara! Mâine nu e coș pentru azi.','😄 Câte ai mutat pentru mâine?'],
+  empty_today_kind:['Liber azi! 🌿','Lista e curată ✨','Fără sarcini. Bucură-te 😊'],
+  empty_all_kind:['Totul curat! Adaugă ceva 🌱','Pagină albă!','Fără sarcini. Zen 😌'],
+  empty_done_kind:['Prima bifă e cea mai dulce 💛','Totul e înainte!','Sala de glorie vine 🏆'],
+  empty_today_sar:['Gol. Sigur n-ai uitat nimic? 🤔','Zen sau negare.','Suspect de curat 🧐'],
+  empty_all_sar:['Complet gol. Eficient sau Netflix.','Adaugă măcar "nu pierde telefonul".','Tabula rasa. Sună bine, arată ca procrastinare 😄'],
+  empty_done_sar:['Zero. Dar ai "aproape început"? 😏','Nimic completat. Prima bifă!','Sala de glorie. Cândva. 🏆'],
+  t_create_kind:['Salvat! 🌿','Adăugat 💛','Sarcină grozavă 🌸'],
+  t_edit_kind:['Actualizat 💛','Salvat ✨','Corectat — bravo!'],
+  t_done_kind:['✓ Gata! Bravo 🌸','✓ Completat! Știam că poți 💛','✓ O mică victorie e tot o victorie ✨'],
+  t_undone_kind:['Redeschis — fără judecată 🌿','Mai e timp 💛','Înapoi în coadă 🌸'],
+  t_del_kind:['Șters. Uneori a lăsa e corect 🌿','Eliminat! Lista e mai ușoară 💨','Șters ✨'],
+  t_create_sar:['Salvat. Acum trebuie doar făcut 😏','Adăugat! Mișcare îndrăzneață.','Pe listă. Fără scăpare 🎯'],
+  t_edit_sar:['Corectat. Perfecțiunea e supraevaluată.','Actualizat! De data asta chiar o faci?','Salvat. Sarcina v2.0 😏'],
+  t_done_sar:['✓ Chiar ai făcut-o! Aproape surprins 😏','✓ Gata! Ce întorsătură!','✓ Vezi? N-a fost atât de greu 😄'],
+  t_undone_sar:['Redeschis. Încă o șansă 😏','Fără judecată, dar cu așteptări 😄','Din nou. De data asta serios 😌'],
+  t_del_sar:['Șters. Sarcina n-a avut șanse 👋','La revedere sarcină. RIP 😄','Să pretindem că n-a existat.'],
+  urgent_kind:['🌟 Important','⚡ Prioritate','🎯 Azi!','💫 Nu uita'],
+  urgent_sar:['🔥 Întârziat','😬 Demult trebuit','⚡ Până când','🚨 SERIOS'],
+  tips_kind:['Ai deschis app-ul — asta e deja un pas 💛','Pomodoro: 25 min muncă, 5 min odihnă 🍅','Împarte sarcinile mari în bucăți 🌿','Reminder 15 min înainte — cadou pentru tine ⏰','Fiecare bifă = victorie mică!','Te descurci mai bine decât crezi 💛'],
+  tips_sar:['Ai deschis app-ul. Pasul unu. Nu-l închide 😏','Pomodoro: 25 min muncă, 5 min faci că te odihnești','Sarcina stă 3 zile? Fă-o sau șterge-o. Fără milă.','Reminder 15 min = ieri credeai în tine ⏰','Bifă = dopamină. E neurobiologie 🧠','ADHD e o superputere. Greu de găsit, dar e acolo 💪'],
+  months:['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],
+  ms:['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'],
+  dow:['Lu','Ma','Mi','Jo','Vi','Sâ','Du'],dows:['lu','ma','mi','jo','vi','sâ','du'],
+  loc:'ro-RO',
+},
+es:{s_title:'Configuración',lang_applied:'Español ✓',s_lang_lbl:'Idioma',s_theme_lbl:'Tema',s_family_lbl:'Familia',
+  ob0t:'¡Hola!',ob0s:'¿Cómo te llamas?',ob0ph:'Tu nombre...',
+  ob1t:'Idioma',ob1s:'¿Qué idioma prefieres?',
+  ob2t:'Tema',ob2s:'Elige tu estilo',
+  ob3t:'Tono',ob3s:'¿Cómo debe hablarte la app?',
+  ob4t:'¿Cómo te identificas?',ob4s:'Para adaptar el idioma',
+  obg_m:'Él / He',obg_f:'Ella / She',obg_n:'Elle / They',
+  obhkn:'Amable',obhkd:'Apoyo y palabras cálidas',
+  obhsn:'Sarcástico',obhsd:'Motivación con humor',
+  ob_finish:'✓ ¡Empezar!',ob_next:'Siguiente →',
+  tab_today:'Hoy',tab_all:'Todo',tab_done:'Listo',
+  nav_tasks:'Tareas',nav_cal:'Agenda',nav_cats:'Etiquetas',nav_sett:'Ajustes',
+  home_title:'Mi\ndía',s_today:'Hoy',s_all:'Total',s_done:'Listo',filter_all:'Todo',
+  f_cancel:'Cancelar',f_save:'Listo',f_new:'Nueva tarea',f_edit_task:'Editar',
+  fl_main:'Principal',fl_icon:'Icono',fl_change:'Cambiar',fl_cat:'Categoría',
+  fl_prio:'Prioridad',fp_hi:'🟠 Alta',fp_md:'🔵 Media',fp_lo:'🟢 Baja',
+  fl_date:'Fecha',fl_time:'Hora',fl_from:'De',fl_to:'A',
+  fl_rec:'Repetir',fl_place:'Lugar',fl_place_ph:'Buscar lugar...',
+  fl_who:'Quién',fl_remind:'Recordatorio',fl_note:'Nota',
+  f_note_ph:'Detalles...',f_title_ph:'¿Qué hay que hacer?',
+  f_delete:'Eliminar tarea',
+  rem:{'':'Sin','5':'5 min antes','15':'15 min antes','30':'30 min antes','60':'1 hora antes','1440':'1 día antes'},
+  rec_none:'Nunca',rec_day:'Cada día',rec_week:'Cada semana',rec_month:'Cada mes',
+  d_back:'‹ Atrás',d_edit:'Editar',d_done:'✓ Completar',d_undone:'↩ Reabrir',
+  d_date:'Fecha',d_rec:'Repetir',d_place:'Lugar',d_note:'Nota',
+  cal_eyebrow:'Agenda',cal_today:'Hoy',cv_day:'Día',cv_week:'Semana',cv_month:'Mes',
+  cal_notime:'Sin hora',cal_free:'Día libre',
+  cats_title:'Categorías',cat_new:'+ Nueva',cat_add:'Añadir',cat_cancel:'Cancelar',cat_ph:'Nombre...',
+  s_title:'Ajustes',sl_lang:'Idioma',sl_theme:'Tema',sl_style:'Tono',sl_gender:'Pronombre',
+  sl_fam:'Familia',
+  s_sys:'Sistema',s_tips_title:'Consejos TDAH',s_notif:'Notificaciones',s_notif_sub:'Notificaciones push',
+  s_export:'Exportar datos',s_clear:'Limpiar completadas',s_kind_lbl:'Amable',s_sar_lbl:'Sarcástico',
+  member_ph:'Añadir miembro...',lb_map:'🗺 Mapa',lb_clear:'Quitar',
+  cat_work:'Trabajo',cat_home:'Casa',cat_health:'Salud',cat_kids:'Niños',cat_personal:'Personal',
+  prio_hi:'Alta',prio_md:'Media',prio_lo:'Baja',
+  th_sand:'🌿 Cálido',th_dark:'🌙 Oscuro',th_forest:'🌲 Bosque',th_ocean:'🌊 Océano',
+  greet_m_kind:['Buenos días ☀️','¡Mañana nueva! 🌿','Nuevas oportunidades ✨','¡Arriba! ☀️'],
+  greet_d_kind:['Buenas tardes 👋','¿Cómo vas? 🌿','A mitad de día 💛','¡Sigue adelante! 😊'],
+  greet_e_kind:['Buenas noches 🌙','¡Gran trabajo hoy! 💛','Casi listo 🌙','Buen día ✨'],
+  greet_m_sar:['☀️ Arriba. La lista espera.','🌅 ¿Café listo? A trabajar.','😴 Te despertaste. Difícil ya fue.','🚀 Día nuevo, mismas tareas. ¡Vamos!'],
+  greet_d_sar:['👀 Mediodía. ¿Qué hiciste? Contemos.','😏 Espero que no solo estés scrolleando.','⏳ Mitad del día. ¿Tú dónde?','🎯 Momento perfecto para empezar.'],
+  greet_e_sar:['🌙 Tarde. ¿Cuántas tareas? Honestamente.','😬 Fin del día. ¿Listo para la verdad?','🦉 ¡Mañana no es un basurero!','😄 ¿Cuántas moviste para mañana?'],
+  empty_today_kind:['¡Libre hoy! 🌿','Lista limpia ✨','Sin tareas. Disfruta 😊'],
+  empty_all_kind:['¡Todo limpio! Añade algo 🌱','¡Página en blanco!','Sin tareas. Zen 😌'],
+  empty_done_kind:['¡La primera es la más dulce! 💛','¡Todo por delante!','El salón de la fama llegará 🏆'],
+  empty_today_sar:['Vacío. ¿Seguro? 🤔','Zen o negación.','Sospechosamente limpio 🧐'],
+  empty_all_sar:['Nada. ¿Eficiente o Netflix?','Añade "no perder el teléfono".','Tabula rasa. Suena bonito... 😄'],
+  empty_done_sar:['Cero. Pero "casi empezaste", ¿verdad? 😏','¡Primero una!','El salón de la fama. Algún día. 🏆'],
+  t_create_kind:['¡Guardado! 🌿','Añadido 💛','¡Buena tarea! 🌸'],
+  t_edit_kind:['Actualizado 💛','Guardado ✨','¡Corregido!'],
+  t_done_kind:['✓ ¡Hecho! Muy bien 🌸','✓ ¡Completado! 💛','✓ ¡Pequeña victoria! ✨'],
+  t_undone_kind:['Reabierto — sin juicios 🌿','Aún hay tiempo 💛','De vuelta 🌸'],
+  t_del_kind:['Eliminado 🌿','¡Lista más ligera! 💨','Eliminado ✨'],
+  t_create_sar:['Guardado. Ahora solo hay que hacerlo 😏','¡Añadido!','En la lista. Sin escape 🎯'],
+  t_edit_sar:['Corregido. Versión 2.0 😏','¿Esta vez sí lo harás?','Guardado 😏'],
+  t_done_sar:['✓ ¡Lo hiciste! Casi sorprendido 😏','✓ ¡Vaya giro!','✓ ¿Ves? No era tan difícil 😄'],
+  t_undone_sar:['Reabierto. Una oportunidad más 😏','Sin juicios, pero con expectativas 😄','Otra vez. Esta vez de verdad 😌'],
+  t_del_sar:['Eliminado. No tenía futuro 👋','Adiós tarea. RIP 😄','Borrón y cuenta nueva.'],
+  urgent_kind:['🌟 Importante','⚡ Prioridad','🎯 ¡Hoy!','💫 No olvides'],
+  urgent_sar:['🔥 Vencido','😬 Ya era hora','⚡ Venga ya','🚨 EN SERIO'],
+  tips_kind:['Abriste la app — ¡primer paso! 💛','Pomodoro: 25 min trabajo, 5 descanso 🍅','Divide las tareas grandes 🌿','Recordatorio 15 min = regalo para ti ⏰','¡Cada marca = pequeña victoria!','Lo haces mejor de lo que crees 💛'],
+  tips_sar:['Abriste la app. Paso uno. No la cierres 😏','Pomodoro: 25 trabajo, 5 finges descansar','¿3 días sin hacer? Hazla o bórrala.','Recordatorio 15 min = ayer creías en ti ⏰','Marca = dopamina. Es neurociencia 🧠','El TDAH es un superpoder. Difícil, pero ahí está 💪'],
+  months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+  ms:['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
+  dow:['Lu','Ma','Mi','Ju','Vi','Sá','Do'],dows:['lu','ma','mi','ju','vi','sá','do'],
+  loc:'es-ES',
+},
+fr:{s_title:'Paramètres',lang_applied:'Français ✓',s_lang_lbl:'Langue',s_theme_lbl:'Thème',s_family_lbl:'Famille',
+  ob0t:'Bonjour !',ob0s:"Comment tu t'appelles ?",ob0ph:'Ton prénom...',
+  ob1t:'Langue',ob1s:'Quelle langue préfères-tu ?',
+  ob2t:'Thème',ob2s:'Choisis ton style',
+  ob3t:'Ton',ob3s:"Comment doit te parler l'appli ?",
+  ob4t:"Comment tu t'identifies ?",ob4s:'Pour adapter le langage',
+  obg_m:'Il / He',obg_f:'Elle / She',obg_n:'Iel / They',
+  obhkn:'Doux',obhkd:'Soutien et mots chaleureux',
+  obhsn:'Sarcastique',obhsd:'Motivation avec humour',
+  ob_finish:"✓ C'est parti !",ob_next:'Suivant →',
+  tab_today:"Aujourd'hui",tab_all:'Tout',tab_done:'Fait',
+  nav_tasks:'Tâches',nav_cal:'Agenda',nav_cats:'Tags',nav_sett:'Réglages',
+  home_title:'Ma\njournée',s_today:"Aujourd'hui",s_all:'Total',s_done:'Fait',filter_all:'Tout',
+  f_cancel:'Annuler',f_save:'OK',f_new:'Nouvelle tâche',f_edit_task:'Modifier',
+  fl_main:'Principal',fl_icon:'Icône',fl_change:'Changer',fl_cat:'Catégorie',
+  fl_prio:'Priorité',fp_hi:'🟠 Haute',fp_md:'🔵 Moyenne',fp_lo:'🟢 Basse',
+  fl_date:'Date',fl_time:'Heure',fl_from:'De',fl_to:'À',
+  fl_rec:'Répéter',fl_place:'Lieu',fl_place_ph:'Chercher un lieu...',
+  fl_who:'Qui',fl_remind:'Rappel',fl_note:'Note',
+  f_note_ph:'Détails...',f_title_ph:"Qu'est-ce à faire ?",
+  f_delete:'Supprimer la tâche',
+  rem:{'':'Aucun','5':'5 min avant','15':'15 min avant','30':'30 min avant','60':'1h avant','1440':'1 jour avant'},
+  rec_none:'Jamais',rec_day:'Chaque jour',rec_week:'Chaque semaine',rec_month:'Chaque mois',
+  d_back:'‹ Retour',d_edit:'Modifier',d_done:'✓ Marquer fait',d_undone:'↩ Rouvrir',
+  d_date:'Date',d_rec:'Répéter',d_place:'Lieu',d_note:'Note',
+  cal_eyebrow:'Agenda',cal_today:"Aujourd'hui",cv_day:'Jour',cv_week:'Semaine',cv_month:'Mois',
+  cal_notime:'Sans heure',cal_free:'Journée libre',
+  cats_title:'Catégories',cat_new:'+ Nouvelle',cat_add:'Ajouter',cat_cancel:'Annuler',cat_ph:'Nom...',
+  s_title:'Réglages',sl_lang:'Langue',sl_theme:'Thème',sl_style:'Ton',sl_gender:'Pronom',
+  sl_fam:'Famille',
+  s_sys:'Système',s_tips_title:'Conseils TDAH',s_notif:'Notifications',s_notif_sub:'Notifications push',
+  s_export:'Exporter',s_clear:'Effacer les tâches faites',s_kind_lbl:'Doux',s_sar_lbl:'Sarcastique',
+  member_ph:'Ajouter un membre...',lb_map:'🗺 Carte',lb_clear:'Retirer',
+  cat_work:'Travail',cat_home:'Maison',cat_health:'Santé',cat_kids:'Enfants',cat_personal:'Personnel',
+  prio_hi:'Haute',prio_md:'Moyenne',prio_lo:'Basse',
+  th_sand:'🌿 Chaud',th_dark:'🌙 Sombre',th_forest:'🌲 Forêt',th_ocean:'🌊 Océan',
+  greet_m_kind:['Bonjour ☀️','Belle matinée ! 🌿','Nouvelle journée ✨','Debout ! ☀️'],
+  greet_d_kind:['Bon après-midi 👋','Comment ça va ? 🌿','Mi-journée — bravo 💛','Continue ! 😊'],
+  greet_e_kind:['Bonsoir 🌙','Super journée ! 💛','Presque fini 🌙','Belle journée ✨'],
+  greet_m_sar:["☀️ Debout. La liste t'attend.",'🌅 Café bu ? Au boulot.',"😴 Tu t'es levé. Bravo. Ça va se compliquer.",'🚀 Nouveau jour, mêmes tâches.'],
+  greet_d_sar:['👀 Midi. Bilan ?',"😏 J'espère que tu ne fais pas que scroller.",'⏳ Moitié de journée. Tu en es où ?','🎯 Parfait moment pour commencer.'],
+  greet_e_sar:['🌙 Soir. Combien de coches ? Honnêtement.','😬 Fin de journée. Prêt pour la vérité ?',"🦉 Demain n'est pas une poubelle !",'😄 Combien as-tu reporté ?'],
+  empty_today_kind:["Libre aujourd'hui ! 🌿",'Liste vide ✨','Pas de tâches. Profite 😊'],
+  empty_all_kind:['Tout propre ! Ajoute quelque chose 🌱','Page blanche !','Pas de tâches. Zen 😌'],
+  empty_done_kind:['La première est la plus douce 💛','Tout est devant toi !','Le temple de la gloire arrive 🏆'],
+  empty_today_sar:['Vide. Tu es sûr ? 🤔','Zen ou déni.','Suspicieusement propre 🧐'],
+  empty_all_sar:['Vide. Efficace ou Netflix ?','Ajoute au moins "ne pas perdre le téléphone".','Tabula rasa. Ça sonne bien... 😄'],
+  empty_done_sar:['Zéro. Mais tu "allais presque commencer", right ? 😏','Première coche = la plus douce !','Temple de gloire. Un jour. 🏆'],
+  t_create_kind:['Enregistré ! 🌿','Ajouté 💛','Super tâche ! 🌸'],
+  t_edit_kind:['Mis à jour 💛','Sauvegardé ✨','Corrigé — bien !'],
+  t_done_kind:['✓ Fait ! Bravo 🌸','✓ Complété ! 💛','✓ Petite victoire ! ✨'],
+  t_undone_kind:['Rouvert — sans jugement 🌿','Il reste du temps 💛','De retour 🌸'],
+  t_del_kind:['Supprimé 🌿','Liste plus légère ! 💨','Supprimé ✨'],
+  t_create_sar:['Enregistré. Maintenant fais-le 😏','Ajouté !',"Dans la liste. Pas d'échappatoire 🎯"],
+  t_edit_sar:['Corrigé. Version 2.0 😏','Cette fois tu le feras vraiment ?','Sauvegardé 😏'],
+  t_done_sar:["✓ Tu l'as fait ! Presque surpris 😏",'✓ Quel retournement !','✓ Pas si dur finalement 😄'],
+  t_undone_sar:['Rouvert. Encore une chance 😏','Sans jugement, mais avec attentes 😄','Encore. Pour de vrai cette fois 😌'],
+  t_del_sar:['Supprimé. Aucun avenir 👋','Adieu tâche. RIP 😄',"Comme si ça n'avait jamais existé."],
+  urgent_kind:['🌟 Important','⚡ Priorité',"🎯 Aujourd'hui !","💫 N'oublie pas"],
+  urgent_sar:['🔥 En retard','😬 Il était temps','⚡ Enfin','🚨 SÉRIEUSEMENT'],
+  tips_kind:["Tu as ouvert l'app — c'est déjà le premier pas 💛",'Pomodoro : 25 min travail, 5 min pause 🍅','Divise les grandes tâches 🌿','Rappel 15 min = cadeau pour toi ⏰','Chaque coche = petite victoire !','Tu te débrouilles mieux que tu ne le crois 💛'],
+  tips_sar:["Tu as ouvert l'app. Étape une. Ne la ferme pas 😏",'Pomodoro : 25 travail, 5 tu fais semblant de te reposer','Tâche là depuis 3 jours ? Fais-la ou supprime-la.','Rappel 15 min = hier tu croyais en toi ⏰',"Coche = dopamine. C'est la neurobiologie 🧠",'Le TDAH est un superpouvoir. Difficile à trouver mais là 💪'],
+  months:['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
+  ms:['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'],
+  dow:['Lu','Ma','Me','Je','Ve','Sa','Di'],dows:['lu','ma','me','je','ve','sa','di'],
+  loc:'fr-FR',
+},
+de:{s_title:'Einstellungen',lang_applied:'Deutsch ✓',s_lang_lbl:'Sprache',s_theme_lbl:'Thema',s_family_lbl:'Familie',
+  ob0t:'Hallo!',ob0s:'Wie heißt du?',ob0ph:'Dein Name...',
+  ob1t:'Sprache',ob1s:'Welche Sprache bevorzugst du?',
+  ob2t:'Thema',ob2s:'Wähle deinen Stil',
+  ob3t:'Ton',ob3s:'Wie soll die App mit dir reden?',
+  ob4t:'Wie identifizierst du dich?',ob4s:'Für sprachliche Anpassung',
+  obg_m:'Er / He',obg_f:'Sie / She',obg_n:'Sie* / They',
+  obhkn:'Sanft',obhkd:'Unterstützung und warme Worte',
+  obhsn:'Sarkastisch',obhsd:'Motivation durch Humor',
+  ob_finish:"✓ Los geht's!",ob_next:'Weiter →',
+  tab_today:'Heute',tab_all:'Alle',tab_done:'Erledigt',
+  nav_tasks:'Aufgaben',nav_cal:'Kalender',nav_cats:'Tags',nav_sett:'Einstellungen',
+  home_title:'Mein\nTag',s_today:'Heute',s_all:'Gesamt',s_done:'Erledigt',filter_all:'Alle',
+  f_cancel:'Abbrechen',f_save:'Fertig',f_new:'Neue Aufgabe',f_edit_task:'Bearbeiten',
+  fl_main:'Hauptteil',fl_icon:'Symbol',fl_change:'Ändern',fl_cat:'Kategorie',
+  fl_prio:'Priorität',fp_hi:'🟠 Hoch',fp_md:'🔵 Mittel',fp_lo:'🟢 Niedrig',
+  fl_date:'Datum',fl_time:'Uhrzeit',fl_from:'Von',fl_to:'Bis',
+  fl_rec:'Wiederholen',fl_place:'Ort',fl_place_ph:'Ort suchen...',
+  fl_who:'Wer',fl_remind:'Erinnerung',fl_note:'Notiz',
+  f_note_ph:'Details...',f_title_ph:'Was muss erledigt werden?',
+  f_delete:'Aufgabe löschen',
+  rem:{'':'Keine','5':'5 Min vorher','15':'15 Min vorher','30':'30 Min vorher','60':'1 Std vorher','1440':'1 Tag vorher'},
+  rec_none:'Nie',rec_day:'Täglich',rec_week:'Wöchentlich',rec_month:'Monatlich',
+  d_back:'‹ Zurück',d_edit:'Bearbeiten',d_done:'✓ Erledigt',d_undone:'↩ Wiederöffnen',
+  d_date:'Datum',d_rec:'Wiederholen',d_place:'Ort',d_note:'Notiz',
+  cal_eyebrow:'Kalender',cal_today:'Heute',cv_day:'Tag',cv_week:'Woche',cv_month:'Monat',
+  cal_notime:'Keine Uhrzeit',cal_free:'Freier Tag',
+  cats_title:'Kategorien',cat_new:'+ Neue',cat_add:'Hinzufügen',cat_cancel:'Abbrechen',cat_ph:'Name...',
+  s_title:'Einstellungen',sl_lang:'Sprache',sl_theme:'Thema',sl_style:'Ton',sl_fam:'Familie',
+  s_sys:'System',s_tips_title:'ADHS-Tipps',s_notif:'Benachrichtigungen',s_notif_sub:'Push-Benachrichtigungen',
+  s_export:'Daten exportieren',s_clear:'Erledigte löschen',s_kind_lbl:'Sanft',s_sar_lbl:'Sarkastisch',
+  member_ph:'Mitglied hinzufügen...',lb_map:'🗺 Karte',lb_clear:'Entfernen',
+  cat_work:'Arbeit',cat_home:'Zuhause',cat_health:'Gesundheit',cat_kids:'Kinder',cat_personal:'Persönlich',
+  prio_hi:'Hoch',prio_md:'Mittel',prio_lo:'Niedrig',
+  th_sand:'🌿 Warm',th_dark:'🌙 Dunkel',th_forest:'🌲 Wald',th_ocean:'🌊 Ozean',
+  greet_m_kind:['Guten Morgen ☀️','Schöner Morgen! 🌿','Neuer Tag, neue Chancen ✨','Aufstehen! ☀️'],
+  greet_d_kind:['Guten Tag 👋',"Wie läuft's? 🌿",'Halbzeit — gut gemacht 💛','Weiter so! 😊'],
+  greet_e_kind:['Guten Abend 🌙','Super heute! 💛','Fast fertig 🌙','Schöner Tag ✨'],
+  greet_m_sar:['☀️ Aufstehen. Die Liste wartet.','🌅 Kaffee getrunken? Ran an die Arbeit.','😴 Aufgewacht. Wird noch schwerer.','🚀 Neuer Tag, gleiche Aufgaben.'],
+  greet_d_sar:['👀 Mittag. Was hast du erledigt?','😏 Ich hoffe, du scrollst nicht nur.','⏳ Halbzeit. Wo stehst du?','🎯 Jetzt ist der perfekte Zeitpunkt.'],
+  greet_e_sar:['🌙 Abend. Wie viele Haken? Ehrlich.','😬 Tagesende. Bereit für die Wahrheit?','🦉 Morgen ist kein Papierkorb!','😄 Wie viele verschoben?'],
+  empty_today_kind:['Heute frei! 🌿','Liste leer ✨','Keine Aufgaben. Genieße es 😊'],
+  empty_all_kind:['Alles klar! Füge etwas hinzu 🌱','Leere Seite!','Keine Aufgaben. Zen 😌'],
+  empty_done_kind:['Erster Haken ist der süßeste 💛','Alles liegt vor dir!','Ruhmeshalle kommt 🏆'],
+  empty_today_sar:['Leer. Sicher nichts vergessen? 🤔','Zen oder Verleugnung.','Verdächtig sauber 🧐'],
+  empty_all_sar:['Komplett leer. Effizient oder Netflix?','Füge wenigstens "Handy nicht verlieren" hinzu.','Tabula rasa. Klingt gut... 😄'],
+  empty_done_sar:['Null. Aber du hast "fast angefangen", oder? 😏','Erster Haken!','Ruhmeshalle. Irgendwann. 🏆'],
+  t_create_kind:['Gespeichert! 🌿','Hinzugefügt 💛','Tolle Aufgabe! 🌸'],
+  t_edit_kind:['Aktualisiert 💛','Gespeichert ✨','Korrigiert — gut!'],
+  t_done_kind:['✓ Erledigt! Gut gemacht 🌸','✓ Geschafft! 💛','✓ Kleiner Sieg zählt auch ✨'],
+  t_undone_kind:['Wiedergeöffnet — kein Urteil 🌿','Noch Zeit 💛','Zurück in der Liste 🌸'],
+  t_del_kind:['Gelöscht 🌿','Liste leichter! 💨','Gelöscht ✨'],
+  t_create_sar:["Gespeichert. Jetzt mach's auch 😏",'Hinzugefügt!','Auf der Liste. Kein Entkommen 🎯'],
+  t_edit_sar:['Korrigiert. Version 2.0 😏','Diesmal wirklich?','Gespeichert 😏'],
+  t_done_sar:['✓ Du hast es getan! Fast überrascht 😏','✓ Was für eine Wende!','✓ War doch nicht so schwer 😄'],
+  t_undone_sar:['Wiedergeöffnet. Noch eine Chance 😏','Kein Urteil, aber Erwartungen 😄','Nochmal. Diesmal ernst 😌'],
+  t_del_sar:['Gelöscht. Keine Zukunft 👋','Tschüss Aufgabe. RIP 😄','So als wäre es nie gewesen.'],
+  urgent_kind:['🌟 Wichtig','⚡ Priorität','🎯 Heute!','💫 Nicht vergessen'],
+  urgent_sar:['🔥 Überfällig','😬 Wird Zeit','⚡ Endlich','🚨 ERNSTHAFT'],
+  tips_kind:['App geöffnet — das ist schon Schritt eins 💛','Pomodoro: 25 Min Arbeit, 5 Pause 🍅','Große Aufgaben aufteilen 🌿','15-Min-Erinnerung = Geschenk an dich ⏰','Jeder Haken = kleiner Sieg!','Du machst es besser als du denkst 💛'],
+  tips_sar:['App geöffnet. Schritt eins. Nicht schließen 😏','Pomodoro: 25 Arbeit, 5 so tun als ob',"Aufgabe 3 Tage alt? Tu's oder lösch's.",'15-Min-Erinnerung = gestern hast du an dich geglaubt ⏰','Haken = Dopamin. Neurobiologie 🧠','ADHS ist ein Superpower. Schwer zu finden, aber da 💪'],
+  months:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  ms:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+  dow:['Mo','Di','Mi','Do','Fr','Sa','So'],dows:['mo','di','mi','do','fr','sa','so'],
+  loc:'de-DE',
+},
+pt:{s_title:'Configurações',lang_applied:'Português ✓',s_lang_lbl:'Idioma',s_theme_lbl:'Tema',s_family_lbl:'Família',
+  ob0t:'Olá!',ob0s:'Qual é o seu nome?',ob0ph:'Seu nome...',
+  ob1t:'Idioma',ob1s:'Qual idioma preferes?',
+  ob2t:'Tema',ob2s:'Escolha seu estilo',
+  ob3t:'Tom',ob3s:'Como o app deve falar contigo?',
+  ob4t:'Como você se identifica?',ob4s:'Para adaptar a linguagem',
+  obg_m:'Ele / He',obg_f:'Ela / She',obg_n:'Elu / They',
+  obhkn:'Gentil',obhkd:'Apoio e palavras amorosas',
+  obhsn:'Sarcástico',obhsd:'Motivação com humor',
+  ob_finish:'✓ Vamos!',ob_next:'Próximo →',
+  tab_today:'Hoje',tab_all:'Todos',tab_done:'Feito',
+  nav_tasks:'Tarefas',nav_cal:'Agenda',nav_cats:'Tags',nav_sett:'Configurações',
+  home_title:'Meu\ndia',s_today:'Hoje',s_all:'Total',s_done:'Feito',filter_all:'Todos',
+  f_cancel:'Cancelar',f_save:'Pronto',f_new:'Nova tarefa',f_edit_task:'Editar',
+  fl_main:'Principal',fl_icon:'Ícone',fl_change:'Alterar',fl_cat:'Categoria',
+  fl_prio:'Prioridade',fp_hi:'🟠 Alta',fp_md:'🔵 Média',fp_lo:'🟢 Baixa',
+  fl_date:'Data',fl_time:'Hora',fl_from:'De',fl_to:'Até',
+  fl_rec:'Repetir',fl_place:'Local',fl_place_ph:'Buscar local...',
+  fl_who:'Quem',fl_remind:'Lembrete',fl_note:'Nota',
+  f_note_ph:'Detalhes...',f_title_ph:'O que precisa ser feito?',
+  f_delete:'Excluir tarefa',
+  rem:{'':'Nenhum','5':'5 min antes','15':'15 min antes','30':'30 min antes','60':'1h antes','1440':'1 dia antes'},
+  rec_none:'Nunca',rec_day:'Todo dia',rec_week:'Toda semana',rec_month:'Todo mês',
+  d_back:'‹ Voltar',d_edit:'Editar',d_done:'✓ Concluir',d_undone:'↩ Reabrir',
+  d_date:'Data',d_rec:'Repetir',d_place:'Local',d_note:'Nota',
+  cal_eyebrow:'Agenda',cal_today:'Hoje',cv_day:'Dia',cv_week:'Semana',cv_month:'Mês',
+  cal_notime:'Sem hora',cal_free:'Dia livre',
+  cats_title:'Categorias',cat_new:'+ Nova',cat_add:'Adicionar',cat_cancel:'Cancelar',cat_ph:'Nome...',
+  s_title:'Configurações',sl_lang:'Idioma',sl_theme:'Tema',sl_style:'Tom',sl_gender:'Pronome',
+  sl_fam:'Família',
+  s_sys:'Sistema',s_tips_title:'Dicas TDAH',s_notif:'Notificações',s_notif_sub:'Notificações push',
+  s_export:'Exportar dados',s_clear:'Limpar concluídas',s_kind_lbl:'Gentil',s_sar_lbl:'Sarcástico',
+  member_ph:'Adicionar membro...',lb_map:'🗺 Mapa',lb_clear:'Remover',
+  cat_work:'Trabalho',cat_home:'Casa',cat_health:'Saúde',cat_kids:'Filhos',cat_personal:'Pessoal',
+  prio_hi:'Alta',prio_md:'Média',prio_lo:'Baixa',
+  th_sand:'🌿 Quente',th_dark:'🌙 Escuro',th_forest:'🌲 Floresta',th_ocean:'🌊 Oceano',
+  greet_m_kind:['Bom dia ☀️','Manhã linda! 🌿','Novo dia, novas chances ✨','Acorda! ☀️'],
+  greet_d_kind:['Boa tarde 👋','Como vai? 🌿','Metade do dia — ótimo 💛','Continue! 😊'],
+  greet_e_kind:['Boa noite 🌙','Ótimo dia! 💛','Quase lá 🌙','Bom dia ✨'],
+  greet_m_sar:['☀️ Levanta. A lista espera.','🌅 Café tomado? Vamos trabalhar.','😴 Acordou. Difícil já foi.','🚀 Dia novo, mesmas tarefas.'],
+  greet_d_sar:['👀 Meio-dia. O que foi feito?','😏 Espero que não esteja só scrollando.','⏳ Metade do dia. Onde você está?','🎯 Momento perfeito para começar.'],
+  greet_e_sar:['🌙 Tarde. Quantas marcadas? Honestamente.','😬 Fim do dia. Pronto para a verdade?','🦉 Amanhã não é lixeira!','😄 Quantas moveu para amanhã?'],
+  empty_today_kind:['Livre hoje! 🌿','Lista limpa ✨','Sem tarefas. Aproveite 😊'],
+  empty_all_kind:['Tudo limpo! Adicione algo 🌱','Página em branco!','Sem tarefas. Zen 😌'],
+  empty_done_kind:['A primeira marca é a mais doce 💛','Tudo pela frente!','O hall da fama virá 🏆'],
+  empty_today_sar:['Vazio. Tem certeza? 🤔','Zen ou negação.','Suspeito limpo demais 🧐'],
+  empty_all_sar:['Vazio. Eficiente ou Netflix?','Adicione pelo menos "não perder o celular".','Tabula rasa. Soa bem... 😄'],
+  empty_done_sar:['Zero. Mas "quase começou", né? 😏','Primeira marca!','Hall da fama. Um dia. 🏆'],
+  t_create_kind:['Salvo! 🌿','Adicionado 💛','Ótima tarefa! 🌸'],
+  t_edit_kind:['Atualizado 💛','Salvo ✨','Corrigido — ótimo!'],
+  t_done_kind:['✓ Feito! Parabéns 🌸','✓ Concluído! 💛','✓ Pequena vitória também conta ✨'],
+  t_undone_kind:['Reaberto — sem julgamento 🌿','Ainda há tempo 💛','De volta 🌸'],
+  t_del_kind:['Excluído 🌿','Lista mais leve! 💨','Excluído ✨'],
+  t_create_sar:['Salvo. Agora é só fazer 😏','Adicionado!','Na lista. Sem escapatória 🎯'],
+  t_edit_sar:['Corrigido. Versão 2.0 😏','Dessa vez vai fazer?','Salvo 😏'],
+  t_done_sar:['✓ Fez mesmo! Quase surpreso 😏','✓ Que virada!','✓ Viu? Não era tão difícil 😄'],
+  t_undone_sar:['Reaberto. Mais uma chance 😏','Sem julgamento, mas com expectativas 😄','De novo. Dessa vez de verdade 😌'],
+  t_del_sar:['Excluído. Sem futuro 👋','Adeus tarefa. RIP 😄','Como se nunca tivesse existido.'],
+  urgent_kind:['🌟 Importante','⚡ Prioridade','🎯 Hoje!','💫 Não esqueça'],
+  urgent_sar:['🔥 Atrasado','😬 Já era hora','⚡ Até quando','🚨 SÉRIO'],
+  tips_kind:['Abriu o app — já é o primeiro passo 💛','Pomodoro: 25 min trabalho, 5 pausa 🍅','Divida tarefas grandes 🌿','Lembrete 15 min = presente para você ⏰','Cada marca = pequena vitória!','Você vai melhor do que pensa 💛'],
+  tips_sar:['Abriu o app. Passo um. Não feche 😏','Pomodoro: 25 trabalho, 5 finge descansar','Tarefa há 3 dias? Faz ou deleta.','Lembrete 15 min = ontem você acreditou em você ⏰','Marca = dopamina. É neurociência 🧠','TDAH é superpoder. Difícil de achar, mas está lá 💪'],
+  months:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+  ms:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],
+  dow:['Se','Te','Qu','Qu','Se','Sá','Do'],dows:['se','te','qu','qu','se','sá','do'],
+  loc:'pt-BR',
+},
+};
+const LANGS=[
+  {c:'ru',f:'🇷🇺',n:'Русский'},{c:'en',f:'🇬🇧',n:'English'},
+  {c:'es',f:'🇪🇸',n:'Español'},{c:'fr',f:'🇫🇷',n:'Français'},
+  {c:'de',f:'🇩🇪',n:'Deutsch'},{c:'pt',f:'🇧🇷',n:'Português'},
+  {c:'sr',f:'🇷🇸',n:'Srpski'},{c:'ro',f:'🇷🇴',n:'Română'},
+];
+const THEMES=['sand','dark','forest','ocean'];
+
+const ICONS=['📌','💼','🏠','🏥','👶','🛒','📚','💪','🎯','✈️','💡','🎵','🌿','🔥','💊','🚗','🎓','💰','📱','🧘','🏋️','🌍','🐾','⚡','📊','🗓️','🔑','🧩','🦷','🏫'];
+const PALETTE=['#c47d52','#2d6b62','#7090a8','#9e7a5a','#c4a882','#5a8472','#b07878','#6b7fa8','#a87860','#4a6e6a'];
+const M_COLORS=['#c47d52','#2d6b62','#7090a8','#a87860','#9e7a5a','#5a8472'];
+const PRIO_C={high:'var(--terra)',medium:'var(--slate)',low:'var(--teal)'};
+const PRIO_BG={high:'var(--terra-l)',medium:'var(--slate-l)',low:'var(--teal-l)'};
+const DOW=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const DOW_S=['пн','вт','ср','чт','пт','сб','вс'];
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MS=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+function today(){return new Date().toISOString().slice(0,10);}
+function save(){
+  try{localStorage.setItem('focus_v17',JSON.stringify(state));}catch(e){}
+  if(window._fbReady && window._fbSave) window._fbSave(state);
+}
+function load(){
+  try{return JSON.parse(localStorage.getItem('focus_v17'));}catch(e){return null;}
+}
+
+let state=load()||{
+  lang:'ru',theme:'sand',humor:'sarcasm',gender:'n',onboarded:true,
+  tasks:[
+    {id:1,title:'Записаться к врачу',cat:'health',priority:'high',done:false,date:today(),ts:'10:00',te:'11:00',rec:'Нет',location:'Клиника',locLat:44.82,locLng:20.46,icon:'🏥',member:'me',note:'Взять направление',reminder:'15'},
+    {id:2,title:'Забрать ребёнка из садика',cat:'kids',priority:'high',done:false,date:today(),ts:'17:00',te:'17:30',rec:'Каждый день',location:'Садик',locLat:44.82,locLng:20.46,icon:'👶',member:'partner',note:'',reminder:'15'},
+    {id:3,title:'Купить продукты',cat:'home',priority:'medium',done:false,date:today(),ts:'',te:'',rec:'Каждую неделю',location:'Maxi',locLat:null,locLng:null,icon:'🛒',member:'me',note:'Молоко, яйца, хлеб',reminder:''},
+    {id:4,title:'Созвон с командой',cat:'work',priority:'medium',done:true,date:today(),ts:'14:00',te:'15:00',rec:'Нет',location:'',locLat:null,locLng:null,icon:'💼',member:'me',note:'Zoom',reminder:''},
+    {id:5,title:'Подготовить отчёт',cat:'work',priority:'low',done:false,date:today(),ts:'09:00',te:'10:00',rec:'Нет',location:'',locLat:null,locLng:null,icon:'📊',member:'me',note:'',reminder:''},
+  ],
+  cats:[
+    {id:'work',name:'Работа',color:'#7090a8',icon:'💼'},
+    {id:'home',name:'Дом',color:'#c47d52',icon:'🏠'},
+    {id:'health',name:'Медицина',color:'#2d6b62',icon:'🏥'},
+    {id:'kids',name:'Дети',color:'#a87860',icon:'👶'},
+    {id:'personal',name:'Личное',color:'#9e7a5a',icon:'📌'},
+  ],
+  members:[
+    {id:'me',name:'Я',color:'#c47d52'},
+    {id:'partner',name:'Партнёр',color:'#2d6b62'},
+    {id:'child',name:'Ребёнок',color:'#7090a8'},
+  ],
+  tab:'today',filter:'all'
+};
+
+let curId=null,recording=false,iconOpen=false;
+let fIcon='📌',fCat='',fPrio='medium',fRec='Нет',fMember='me';
+let selLoc={name:'',addr:'',lat:null,lng:null};
+let calView='day',calY=new Date().getFullYear(),calM=new Date().getMonth(),calD=today();
+let newCatIcon='📌',newCatColor='#c47d52',locTimer=null;
+
+// NAV
+function goto(s){
+  document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  document.getElementById('fab').style.display=s==='home'?'flex':'none';
+  document.getElementById('tab-bar').style.display=['home','calendar','cats','settings'].includes(s)?'flex':'none';
+  if(s==='home')renderHome();
+  if(s==='cats')renderCats();
+  if(s==='settings')renderSettings();
+  if(s==='calendar')renderCal();
+}
+function switchNav(s,btn){
+  document.querySelectorAll('.tb-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');goto(s);
+}
+
+// HOME
+function setTab(t,btn){
+  state.tab=t;
+  document.querySelectorAll('.seg-btn[data-t]').forEach(b=>b.classList.remove('on'));
+  (btn||document.querySelector(`[data-t="${t}"]`))?.classList.add('on');
+  renderHome();
+}
+function setFilter(f){state.filter=f;save();renderHome();}
+
+function renderHome(){
+  const td=today();
+  const todayT=state.tasks.filter(t=>t.date===td&&!t.done);
+  const allA=state.tasks.filter(t=>!t.done);
+  const doneT=state.tasks.filter(t=>t.done);
+  document.getElementById('sn-t').textContent=todayT.length;
+  document.getElementById('sn-a').textContent=allA.length;
+  document.getElementById('sn-d').textContent=doneT.length;
+
+  let pool=state.tab==='today'?todayT:state.tab==='done'?doneT:allA;
+  if(state.filter!=='all') pool=pool.filter(t=>t.cat===state.filter);
+  pool=pool.slice().sort((a,b)=>{
+    const at=a.ts||'',bt=b.ts||'';
+    if(at&&bt)return(a.date+at).localeCompare(b.date+bt);
+    if(at)return -1;if(bt)return 1;
+    return(a.date||'').localeCompare(b.date||'');
+  });
+
+  // Cat chips
+  document.getElementById('cat-row').innerHTML=
+    `<button class="cat-chip${state.filter==='all'?' on':''}" style="${state.filter==='all'?'background:var(--terra);color:white;border-color:var(--terra);':''}" onclick="setFilter('all')">Все</button>`+
+    state.cats.map(c=>`<button class="cat-chip${state.filter===c.id?' on':''}" style="color:${c.color};${state.filter===c.id?`background:${c.color}18;border-color:${c.color};`:''}" onclick="setFilter('${c.id}')">${c.icon} ${c.name}</button>`).join('');
+
+  const el=document.getElementById('home-list');
+  if(!pool.length){
+    const EMPTY_TODAY=['Пусто. Ты точно ничего не забыла? 🤔','Список пуст. Это либо дзен, либо отрицание.','Ни одной задачи. Подозрительно чисто 🧐','Свободно! Добавь хоть что-нибудь — мне скучно 😏'];
+const EMPTY_ALL=['Совсем пусто. Ты или очень эффективна, или очень занята Netflix.','Ни одной задачи. Запиши хотя бы «не терять телефон».','Tabula rasa. Звучит красиво, выглядит как прокрастинация 😄'];
+const EMPTY_DONE=['Пока ноль. Но ведь ты «почти начала», да? 😏','Выполненных нет. Первая галочка — самая сладкая!','Здесь будет твой зал славы. Когда-нибудь 🏆'];
+const emptyPool=state.tab==='done'?EMPTY_DONE:state.tab==='all'?EMPTY_ALL:EMPTY_TODAY;
+const emptyMsg=emptyPool[Math.floor(Math.random()*emptyPool.length)];
+el.innerHTML=`<div class="empty"><div class="empty-orb">${state.tab==='done'?'🏆':'🌱'}</div><div class="empty-title">${emptyMsg}</div><div class="empty-sub" style="margin-top:6px;">${state.tab==='today'?t('empty_hint')||'Tap + to add a task':''}</div></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="task-list">`+pool.map((task,i)=>{
+    const cat=getCat(task.cat);
+    const timeStr=task.ts?(task.te?`${task.ts} – ${task.te}`:task.ts):'';
+    const isPast=task.date<td&&!task.done;
+    return `<div class="task-card p-${task.priority}${task.done?' done-card':''} fade-up" style="animation-delay:${i*0.05}s;" onclick="openDetail(${task.id})">
+      <div class="task-row-top">
+        <button class="task-check${task.done?' on':''}" onclick="toggleDone(event,${task.id})" style="border-color:${task.done?'var(--terra)':cat.color+'55'};">
+          <svg width="11" height="9" fill="none" viewBox="0 0 11 9"><path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="task-body">
+          <div class="task-title${task.done?' done':''}">${task.icon} ${task.title}</div>
+          <div class="task-pills">
+            ${task.ts?`<span class="pill pill-time">⏰ ${timeStr}</span>`:''}
+            ${task.date&&task.date!==td?`<span class="pill ${isPast?'pill-past':'pill-date'}">${fmtDate(task.date)}</span>`:''}
+            <span class="pill pill-cat"><span class="cat-blob" style="background:${cat.color};"></span>${cat.name}</span>
+            ${task.priority==='high'&&!task.done?`<span class='pill pill-urgent'>${['🔥 Ещё вчера','😬 Давно пора','⚡ Ну сколько можно','🚨 СЕРЬЁЗНО'][Math.floor(Math.random()*4)]}</span>`:''}
+            ${task.rec&&task.rec!=='Нет'?`<span class="pill pill-rec">↻</span>`:''}
+            ${task.location?`<span class="pill pill-loc">📍 ${task.location}</span>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')+`</div>`;
+
+  applyI18n();
+}
+
+function toggleDone(e,id){
+  e.stopPropagation();
+  const t=state.tasks.find(x=>x.id===id);
+  if(t){t.done=!t.done;save();renderHome();
+const DONE_TOASTS=['✓ О, ты сделала это! Я почти не сомневалась 😏','✓ Выполнено! Вот это поворот!','✓ Галочка поставлена. Так и знала, что можешь 🎯','✓ Готово. Видишь — не так страшно было 😄','✓ Сделано! Продолжай, пока настроение есть ⚡'];
+const UNDONE_TOASTS=['Вернули. Ладно, ещё один шанс 😏','Возвращено в очередь. Без осуждений, но с ожиданиями 😄','Окей, ещё раз. Ты справишься (в этот раз точно)'];
+toast(t.done?DONE_TOASTS[Math.floor(Math.random()*DONE_TOASTS.length)]:UNDONE_TOASTS[Math.floor(Math.random()*UNDONE_TOASTS.length)]);}
+}
+
+// DETAIL
+function openDetail(id){
+  const task=state.tasks.find(t=>t.id===id);
+  if(!task)return;
+  curId=id;
+  const cat=getCat(task.cat);
+  document.getElementById('d-emoji-wrap').style.background=cat.color+'22';
+  document.getElementById('d-emoji').textContent=task.icon;
+  document.getElementById('d-title').textContent=task.title;
+  const badges=[];
+  badges.push(`<span class="d-badge" style="background:${cat.color}18;color:${cat.color};"><span class="cat-blob" style="background:${cat.color};"></span>${cat.name}</span>`);
+  badges.push(`<span class="d-badge" style="background:${PRIO_BG[task.priority]};color:${PRIO_C[task.priority]};">${getPrioL()[task.priority]}</span>`);
+  if(task.member){const m=getMember(task.member);if(m)badges.push(`<span class="d-badge" style="background:${m.color}18;color:${m.color};">● ${m.name}</span>`);}
+  document.getElementById('d-badges').innerHTML=badges.join('');
+  const rows=[];
+  if(task.date){const ts=task.ts?(task.te?`${task.ts} – ${task.te}`:task.ts):'';rows.push(['📅','Дата',fmtDateFull(task.date)+(ts?` · ${ts}`:'')]);}
+  if(task.rec&&task.rec!=='Нет')rows.push(['🔄','Повтор',task.rec]);
+  if(task.location)rows.push(['📍','Место',task.location]);
+  if(task.note)rows.push(['📝','Заметка',task.note]);
+  document.getElementById('d-info-card').innerHTML=rows.length?rows.map(([ic,l,v])=>`<div class="d-info-row"><div class="d-info-icon">${ic}</div><div><div class="d-info-label">${l}</div><div class="d-info-val">${v}</div></div></div>`).join(''):'';
+  document.getElementById('d-map-wrap').style.display=task.location?'block':'none';
+  const btn=document.getElementById('d-done-btn');
+  btn.className=`d-done-btn ${task.done?'done':'pending'}`;
+  btn.textContent=task.done?'↩ Вернуть в список':'✓ Выполнено';
+  goto('detail');
+}
+function toggleCurrentDone(){if(curId){toggleDone({stopPropagation:()=>{}},curId);openDetail(curId);}}
+function editCurrent(){if(curId)openAdd(curId);}
+function openNavigation(){
+  const task=state.tasks.find(t=>t.id===curId);if(!task)return;
+  const q=encodeURIComponent(task.location);
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  if(task.locLat&&task.locLng){if(isIOS)window.open(`maps://maps.apple.com/?q=${q}&ll=${task.locLat},${task.locLng}`,'_blank');else window.open(`https://maps.google.com/?q=${task.locLat},${task.locLng}`,'_blank');}
+  else window.open(`https://maps.google.com/?q=${q}`,'_blank');
+}
+
+// FORM
+function openAdd(id=null){
+  curId=id;const task=id?state.tasks.find(t=>t.id===id):null;
+  document.getElementById('form-heading').textContent=id?'Редактировать':'Новая задача';
+  document.getElementById('del-btn-wrap').style.display=id?'block':'none';
+  fIcon=task?.icon||'📌';fCat=task?.cat||(state.cats[0]?.id||'');
+  fPrio=task?.priority||'medium';fRec=task?.rec||'Нет';fMember=task?.member||(state.members[0]?.id||'me');
+  selLoc={name:task?.location||'',addr:'',lat:task?.locLat||null,lng:task?.locLng||null};
+  ['f-title','f-date','f-ts','f-te','f-loc','f-note','f-reminder'].forEach(id2=>{
+    const el=document.getElementById(id2);
+    if(!el)return;
+    if(id2==='f-date')el.value=task?.date||today();
+    else if(id2==='f-ts')el.value=task?.ts||'';
+    else if(id2==='f-te')el.value=task?.te||'';
+    else if(id2==='f-loc')el.value=task?.location||'';
+    else if(id2==='f-note')el.value=task?.note||'';
+    else if(id2==='f-reminder')el.value=task?.reminder||'';
+    else el.value=task?.title||'';
+  });
+  document.getElementById('loc-results').style.display='none';
+  document.getElementById('icon-panel').style.display='none';
+  iconOpen=false;
+  document.getElementById('f-icon-prev').textContent=fIcon;
+  buildIconGrid();buildCatPills();buildPrioPills();buildRecPills();buildMemberPills();updateLocUI();
+  goto('add');
+}
+function saveTask(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){toast('Введите название');return;}
+  const task={id:curId||Date.now(),title,cat:fCat||state.cats[0]?.id,priority:fPrio,
+    done:curId?(state.tasks.find(t=>t.id===curId)?.done||false):false,
+    date:document.getElementById('f-date').value,ts:document.getElementById('f-ts').value,
+    te:document.getElementById('f-te').value,rec:fRec,
+    location:selLoc.name||document.getElementById('f-loc').value,
+    locLat:selLoc.lat,locLng:selLoc.lng,icon:fIcon,member:fMember,
+    note:document.getElementById('f-note').value.trim(),reminder:document.getElementById('f-reminder').value};
+  if(curId){const i=state.tasks.findIndex(t=>t.id===curId);if(i>=0)state.tasks[i]=task;}
+  else state.tasks.push(task);
+  save();
+const CREATE_TOASTS=['Записано. Теперь осталось сделать 😏','Добавлено! Смелый поступок.','В списке. Теперь не отвертишься 🎯','Записала? Отлично. Через неделю напомним 😄'];
+const EDIT_TOASTS=['Исправлено. Совершенство недостижимо, но попытка засчитана.','Обновлено! Теперь точно сделаешь?','Сохранено. Версия 2.0 задачи 😏'];
+const tpool=curId?EDIT_TOASTS:CREATE_TOASTS;
+toast(tpool[Math.floor(Math.random()*tpool.length)]);goto('home');
+}
+function deleteTask(){
+  if(!curId||!confirm('Удалить?'))return;
+  state.tasks=state.tasks.filter(t=>t.id!==curId);
+  save();
+const DEL_TOASTS=['Удалено. Задача была нежизнеспособна в твоих руках 👋','Прощай, задача. Ты заслуживала лучшей хозяйки 😄','Удалено. Притворимся, что этого никогда не было.','RIP задача. 2024–2024 😏','Убрали! Меньше задач — больше места для новых, которые ты тоже не сделаешь 😄'];
+toast(DEL_TOASTS[Math.floor(Math.random()*DEL_TOASTS.length)]);goto('home');
+}
+function setPrio(p,btn){fPrio=p;document.querySelectorAll('[data-p]').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function buildCatPills(){
+  document.getElementById('f-cat-pills').innerHTML=state.cats.map(c=>`
+    <button class="f-pill${fCat===c.id?' on':''}" style="${fCat===c.id?`background:${c.color};border-color:${c.color};`:''}" onclick="fCat='${c.id}';buildCatPills();">${c.icon} ${c.name}</button>`).join('');
+}
+function buildPrioPills(){document.querySelectorAll('[data-p]').forEach(b=>{b.classList.remove('on');if(b.dataset.p===fPrio)b.classList.add('on');});}
+function buildRecPills(){
+  document.getElementById('f-rec-pills').innerHTML=getRecs().map(r=>`
+    <button class="f-pill${fRec===r?' on':''}" onclick="fRec='${r}';buildRecPills();">${r}</button>`).join('');
+}
+function buildMemberPills(){
+  document.getElementById('f-member-pills').innerHTML=state.members.map(m=>`
+    <button class="f-pill${fMember===m.id?' on':''}" style="${fMember===m.id?`background:${m.color};border-color:${m.color};`:''}" onclick="fMember='${m.id}';buildMemberPills();">● ${m.name}</button>`).join('');
+}
+function buildIconGrid(){
+  document.getElementById('icon-grid').innerHTML=ICONS.map(ic=>`
+    <button class="ic-btn${fIcon===ic?' on':''}" onclick="fIcon='${ic}';document.getElementById('f-icon-prev').textContent='${ic}';buildIconGrid();">${ic}</button>`).join('');
+}
+function toggleIcons(){iconOpen=!iconOpen;document.getElementById('icon-panel').style.display=iconOpen?'block':'none';}
+
+// VOICE
+function toggleVoice(){
+  const btn=document.getElementById('v-btn'),rec=document.getElementById('rec-indicator');
+  if(recording){recording=false;btn.textContent='🎤';btn.classList.remove('rec');rec.style.display='none';return;}
+  if('SpeechRecognition' in window||'webkitSpeechRecognition' in window){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition,r=new SR();
+    r.lang='ru-RU';r.interimResults=true;recording=true;
+    btn.textContent='⏹';btn.classList.add('rec');rec.style.display='flex';
+    r.onresult=e=>{document.getElementById('f-title').value=Array.from(e.results).map(x=>x[0].transcript).join('');};
+    r.onend=()=>{recording=false;btn.textContent='🎤';btn.classList.remove('rec');rec.style.display='none';};
+    r.start();
+  } else {
+    recording=true;btn.classList.add('rec');rec.style.display='flex';
+    setTimeout(()=>{recording=false;btn.classList.remove('rec');rec.style.display='none';toast('Нужен доступ к микрофону');},3000);
+  }
+}
+
+// LOCATION
+function searchLoc(q){
+  clearTimeout(locTimer);const el=document.getElementById('loc-results');
+  if(!q||q.length<3){el.style.display='none';return;}
+  locTimer=setTimeout(()=>{
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&accept-language=ru`)
+      .then(r=>r.json()).then(data=>{
+        if(!data.length){el.style.display='none';return;}
+        el.style.display='block';
+        el.innerHTML=data.map(item=>{const name=item.display_name.split(',').slice(0,2).join(', ');
+          return `<div class="loc-row" onclick="pickLoc('${esc(name)}','${esc(item.display_name)}',${item.lat},${item.lon})"><div class="loc-row-name">${name}</div><div class="loc-row-addr">${item.display_name}</div></div>`;}).join('');
+      }).catch(()=>el.style.display='none');
+  },500);
+}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function pickLoc(name,addr,lat,lng){selLoc={name,addr,lat:parseFloat(lat),lng:parseFloat(lng)};document.getElementById('f-loc').value=name;document.getElementById('loc-results').style.display='none';updateLocUI();}
+function updateLocUI(){
+  const el=document.getElementById('loc-selected');
+  if(selLoc.name){el.style.display='block';document.getElementById('loc-sel-name').textContent=selLoc.name;document.getElementById('loc-sel-addr').textContent=selLoc.addr||'';}
+  else el.style.display='none';
+}
+function openLocMaps(){
+  if(!selLoc.lat)return;const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);const q=encodeURIComponent(selLoc.name);
+  if(isIOS)window.open(`maps://maps.apple.com/?q=${q}&ll=${selLoc.lat},${selLoc.lng}`,'_blank');
+  else window.open(`https://maps.google.com/?q=${selLoc.lat},${selLoc.lng}`,'_blank');
+}
+function clearLoc(){selLoc={name:'',addr:'',lat:null,lng:null};document.getElementById('f-loc').value='';updateLocUI();}
+function useGPS(){
+  if(!navigator.geolocation){toast('Геолокация недоступна');return;}toast('Определяю...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lng}=pos.coords;
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ru`)
+      .then(r=>r.json()).then(d=>{const name=d.display_name?.split(',').slice(0,2).join(', ')||`${lat.toFixed(4)}, ${lng.toFixed(4)}`;pickLoc(name,d.display_name||name,lat,lng);toast('📍 Готово');})
+      .catch(()=>pickLoc(`${lat.toFixed(4)}, ${lng.toFixed(4)}`,'',lat,lng));
+  },()=>toast('Нет доступа к геолокации'));
+}
+
+// CALENDAR
+function setCalView(v){
+  calView=v;
+  ['day','week','month'].forEach(x=>{
+    const el=document.getElementById('cv-'+x);if(el)el.style.display=x===v?(x==='week'?'flex':'block'):'none';
+    const b=document.getElementById('cvb-'+x);if(b){b.classList.remove('on');if(x===v)b.classList.add('on');}
+  });renderCal();
+}
+function calShift(d){
+  if(calView==='day'){const dt=new Date(calD+'T12:00:00');dt.setDate(dt.getDate()+d);calD=dt.toISOString().slice(0,10);calY=dt.getFullYear();calM=dt.getMonth();}
+  else if(calView==='week'){const dt=new Date(calD+'T12:00:00');dt.setDate(dt.getDate()+d*7);calD=dt.toISOString().slice(0,10);calY=dt.getFullYear();calM=dt.getMonth();}
+  else{calM+=d;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}}
+  renderCal();
+}
+function calGoToday(){const n=new Date();calY=n.getFullYear();calM=n.getMonth();calD=today();renderCal();}
+function renderCal(){if(calView==='day')renderDay();else if(calView==='week')renderWeek();else renderMonth();}
+
+function renderDay(){
+  const sd=new Date(calD+'T12:00:00');
+  document.getElementById('cal-label').textContent=sd.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+  const strip=document.getElementById('day-strip');
+  const chips=[];
+  for(let i=-3;i<=3;i++){
+    const d=new Date(sd);d.setDate(d.getDate()+i);const ds=d.toISOString().slice(0,10);
+    const isT=ds===today(),isSel=ds===calD;
+    const ht=state.tasks.some(t=>t.date===ds&&!t.done);
+    chips.push(`<div class="d-chip${isT?' today':isSel&&!isT?' sel':''}" onclick="calD='${ds}';calY=${d.getFullYear()};calM=${d.getMonth()};renderCal();">
+      <div class="d-chip-wd">${DOW_S[(d.getDay()+6)%7]}</div>
+      <div class="d-chip-d">${d.getDate()}</div>
+      ${ht?`<div class="d-chip-dot"></div>`:'<div style="height:5px;"></div>'}
+    </div>`);
+  }
+  strip.innerHTML=chips.join('');
+  const tasks=state.tasks.filter(t=>t.date===calD);
+  const timed=tasks.filter(t=>t.ts).sort((a,b)=>a.ts.localeCompare(b.ts));
+  const untimed=tasks.filter(t=>!t.ts);
+  const isT=calD===today(),now=new Date();
+  let html='';
+  for(let h=6;h<=23;h++){
+    const hStr=String(h).padStart(2,'0')+':00';
+    const hTasks=timed.filter(t=>parseInt(t.ts)===h);
+    let nowL='';
+    if(isT&&now.getHours()===h){const pct=now.getMinutes()/60*100;nowL=`<div class="tl-now" style="top:${pct*0.5+4}px;"><div class="tl-now-dot"></div></div>`;}
+    const blocks=hTasks.map(task=>{const cat=getCat(task.cat);const ts=task.te?`${task.ts} – ${task.te}`:task.ts;
+      return `<div class="tl-card" style="border-left-color:${cat.color};opacity:${task.done?0.4:1};" onclick="openDetail(${task.id})">
+        <div class="tl-card-title" style="${task.done?'text-decoration:line-through;opacity:0.5':''}">${task.icon} ${task.title}</div>
+        <div class="tl-card-meta">⏰ ${ts}${task.location?' · 📍 '+task.location:''}</div>
+      </div>`;}).join('');
+    html+=`<div class="tl-row" style="min-height:${hTasks.length?Math.max(60,hTasks.length*70):52}px;">
+      <div class="tl-time">${hStr}</div>
+      <div class="tl-col">${nowL}${blocks}</div>
+    </div>`;
+  }
+  if(untimed.length){
+    html+=`<div class="tl-no-time-label">Без времени</div>`+untimed.map(task=>{const cat=getCat(task.cat);
+      return `<div class="tl-row"><div class="tl-time">—</div><div class="tl-col"><div class="tl-card" style="border-left-color:${cat.color};opacity:${task.done?0.4:1};" onclick="openDetail(${task.id})"><div class="tl-card-title">${task.icon} ${task.title}</div><div class="tl-card-meta">${cat.name}</div></div></div></div>`;}).join('');
+  }
+  if(!tasks.length)html=`<div class="empty"><div class="empty-orb">🌿</div><div class="empty-title">Свободный день</div><div class="empty-sub">Нет запланированных задач</div></div>`;
+  document.getElementById('tl-body').innerHTML=html;
+}
+
+function renderWeek(){
+  const sel=new Date(calD+'T12:00:00');
+  let dow=(sel.getDay()+6)%7;
+  const mon=new Date(sel);mon.setDate(sel.getDate()-dow);
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+  const fd=days[0],ld=days[6];
+  document.getElementById('cal-label').textContent=`${fd.getDate()} ${MS[fd.getMonth()]} – ${ld.getDate()} ${MS[ld.getMonth()]} ${ld.getFullYear()}`;
+  const td=today();
+  document.getElementById('wk-head-row').innerHTML=`<div class="wk-spacer"></div>`+days.map((d,i)=>{const ds=d.toISOString().slice(0,10);const isT=ds===td;return `<div class="wk-day${isT?' today':''}"><div class="wk-day-wd">${DOW[i]}</div><div class="wk-day-n">${d.getDate()}</div></div>`;}).join('');
+  let html='';
+  for(let h=6;h<=23;h++){
+    html+=`<div class="wk-row"><div class="wk-time">${String(h).padStart(2,'0')}:00</div><div class="wk-cells">`+
+      days.map(d=>{const ds=d.toISOString().slice(0,10);const ht=state.tasks.filter(t=>t.date===ds&&t.ts&&parseInt(t.ts)===h).sort((a,b)=>a.ts.localeCompare(b.ts));
+        return `<div class="wk-cell">`+ht.map(task=>{const cat=getCat(task.cat);
+          return `<div class="wk-ev" style="background:${cat.color}1a;border-left-color:${cat.color};opacity:${task.done?0.4:1};" onclick="openDetail(${task.id})"><div class="wk-ev-t" style="color:${cat.color};">${task.icon} ${task.title}</div><div class="wk-ev-s" style="color:${cat.color};">${task.ts}${task.te?'–'+task.te:''}</div></div>`;}).join('')+`</div>`;}).join('')+`</div></div>`;
+  }
+  html+=`<div class="wk-row" style="background:var(--cream);"><div class="wk-time" style="font-size:9px;padding-top:6px;">∞</div><div class="wk-cells">`+
+    days.map(d=>{const ds=d.toISOString().slice(0,10);const nt=state.tasks.filter(t=>t.date===ds&&!t.ts&&!t.done);
+      return `<div class="wk-cell">`+nt.map(task=>{const cat=getCat(task.cat);return `<div class="wk-ev" style="background:${cat.color}1a;border-left-color:${cat.color};" onclick="openDetail(${task.id})"><div class="wk-ev-t" style="color:${cat.color};">${task.icon} ${task.title}</div></div>`;}).join('')+`</div>`;}).join('')+`</div></div>`;
+  document.getElementById('wk-body').innerHTML=html;
+}
+
+function renderMonth(){
+  document.getElementById('cal-label').textContent=MONTHS[calM]+' '+calY;
+  const first=new Date(calY,calM,1);let sd=(first.getDay()+6)%7;
+  const dim=new Date(calY,calM+1,0).getDate(),dip=new Date(calY,calM,0).getDate();
+  const tMap={};
+  state.tasks.forEach(t=>{if(!t.date)return;const d=new Date(t.date+'T12:00:00');if(d.getFullYear()===calY&&d.getMonth()===calM){const n=d.getDate();if(!tMap[n])tMap[n]=[];tMap[n].push(t);}});
+  const tObj=new Date(),td2=tObj.getDate(),tm=tObj.getMonth(),ty=tObj.getFullYear();
+  let html=DOW.map(d=>`<div class="mn-dn">${d}</div>`).join('');
+  for(let i=sd-1;i>=0;i--)html+=`<div class="mn-day other"><div class="mn-n">${dip-i}</div></div>`;
+  for(let d=1;d<=dim;d++){
+    const isT=d===td2&&calM===tm&&calY===ty;const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isSel=ds===calD;
+    const tasks=tMap[d]||[];const dots=tasks.slice(0,3).map(t=>{const c=getCat(t.cat);return `<div class="mn-dot" style="background:${c.color};"></div>`;}).join('');
+    html+=`<div class="mn-day${isT?' today':''}${isSel&&!isT?' sel':''}" onclick="calD='${ds}';calY=${calY};calM=${calM};renderCal();"><div class="mn-n">${d}</div>${dots?`<div class="mn-dots">${dots}</div>`:''}</div>`;
+  }
+  const tot=sd+dim,rem=(7-tot%7)%7;for(let d=1;d<=rem;d++)html+=`<div class="mn-day other"><div class="mn-n">${d}</div></div>`;
+  document.getElementById('mn-grid').innerHTML=html;
+  const dayTasks=state.tasks.filter(t=>t.date===calD).sort((a,b)=>(a.ts||'zzz').localeCompare(b.ts||'zzz'));
+  const el=document.getElementById('mn-events');
+  if(!dayTasks.length){el.innerHTML=`<div style="padding:16px 0;font-size:14px;color:var(--text4);text-align:center;">Нет задач на ${fmtDate(calD)}</div>`;return;}
+  el.innerHTML=`<div style="font-family:'Lora',serif;font-size:16px;font-weight:500;color:var(--text2);padding-bottom:8px;">${fmtDateFull(calD)}</div>`+
+    dayTasks.map(task=>{const cat=getCat(task.cat);const ts=task.ts?(task.te?`${task.ts}–${task.te}`:task.ts):'—';
+      return `<div class="mn-ev-row" onclick="openDetail(${task.id})" style="opacity:${task.done?0.4:1};"><div class="mn-ev-time">${ts}</div><div><div class="mn-ev-title">${task.icon} ${task.title}</div><div class="mn-ev-cat"><span class="cat-blob" style="background:${cat.color};"></span>${cat.name}</div></div></div>`;}).join('');
+}
+
+// CATS
+function renderCats(){
+  document.getElementById('cat-screen-list').innerHTML=state.cats.map(c=>`
+    <div class="cat-screen-row"><div class="cat-icon-box" style="background:${c.color}18;">${c.icon}</div><div class="cat-screen-name">${c.name}</div><div class="cat-count-badge" style="color:${c.color};">${state.tasks.filter(t=>t.cat===c.id&&!t.done).length}</div></div>`).join('');
+  document.getElementById('new-cat-icons').innerHTML=ICONS.map(ic=>`<button class="ic-btn${newCatIcon===ic?' on':''}" onclick="newCatIcon='${ic}';renderCats();">${ic}</button>`).join('');
+  document.getElementById('new-cat-colors').innerHTML=PALETTE.map(c=>`<div onclick="newCatColor='${c}';document.querySelectorAll('.nc').forEach(b=>b.style.outline='none');this.style.outline='3px solid var(--text)';this.style.outlineOffset='2px';" class="nc" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;${newCatColor===c?'outline:3px solid var(--text);outline-offset:2px':''}"></div>`).join('');
+}
+function showAddCat(){document.getElementById('add-cat-panel').style.display='block';}
+function addCategory(){
+  const name=document.getElementById('new-cat-name').value.trim();if(!name){toast('Введите название');return;}
+  state.cats.push({id:'c'+Date.now(),name,color:newCatColor,icon:newCatIcon});
+  document.getElementById('new-cat-name').value='';document.getElementById('add-cat-panel').style.display='none';
+  save();renderCats();toast('Категория добавлена');
+}
+
+// SETTINGS
+function renderSettings(){
+  // highlight active lang button
+  ['en','ru','sr','de','fr','es','pt','ro'].forEach(function(l){
+    var btn=document.getElementById('lng-'+l);
+    if(!btn)return;
+    if(l===state.lang){btn.style.background='var(--terra)';btn.style.color='white';btn.style.borderColor='var(--terra)';}
+    else{btn.style.background='var(--surface)';btn.style.color='var(--text)';btn.style.borderColor='var(--warm)';}
+  });
+  // highlight active theme button
+  ['sand','dark','forest','ocean'].forEach(function(t){
+    var btn=document.getElementById('th-'+t);
+    if(!btn)return;
+    if(t===state.theme){btn.style.background='var(--terra)';btn.style.color='white';btn.style.borderColor='var(--terra)';}
+    else{btn.style.background='var(--surface)';btn.style.color='var(--text)';btn.style.borderColor='var(--warm)';}
+  });
+
+  document.getElementById('member-list').innerHTML=state.members.map((m,i)=>`
+    <div class="settings-row" style="${i===state.members.length-1?'border-bottom:none':''}">
+      <div style="width:34px;height:34px;border-radius:50%;background:${m.color};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">${m.name.slice(0,1)}</div>
+      <div class="settings-title">${m.name}</div>
+    </div>`).join('');
+  var _tips=getTips();
+  document.getElementById('tips-list').innerHTML=_tips.map((tip,i)=>`
+    <div class="settings-row" style="${i===_tips.length-1?'border-bottom:none;cursor:default':'cursor:default'}">
+      <div class="settings-icon" style="background:var(--terra-l);font-family:'Lora',serif;font-size:13px;font-weight:500;color:var(--terra2);">${i+1}</div>
+      <div style="font-size:14px;color:var(--text2);font-weight:500;">${tip}</div>
+    </div>`).join('');
+
+  applyI18n();
+}
+function addMember(){
+  const name=document.getElementById('new-member').value.trim();if(!name)return;
+  state.members.push({id:'m'+Date.now(),name,color:M_COLORS[state.members.length%M_COLORS.length]});
+  document.getElementById('new-member').value='';save();renderSettings();toast(t('member_added')||'Member added');
+}
+function requestNotif(){if('Notification' in window)Notification.requestPermission().then(p=>toast(p==='granted'?'🔔 Включены':'Доступ закрыт'));else toast('Не поддерживается');}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download='focus-export.json';a.click();}
+function clearDone(){if(!confirm('Удалить все выполненные?'))return;state.tasks=state.tasks.filter(t=>!t.done);save();toast('Очищено');}
+
+// HELPERS
+function getCat(id){return state.cats.find(c=>c.id===id)||{id:'?',name:'?',color:'#9e8b7a',icon:'?'};}
+function getMember(id){return state.members.find(m=>m.id===id)||null;}
+function fmtDate(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
+function fmtDateFull(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// INIT
+const hr=new Date().getHours();
+const GREETINGS_MORNING=['☀️ Подъём. Список ждёт.','🌅 Утро! Кофе выпила? Теперь к делу.','🚀 Новый день, те же задачи. Погнали!','😴→💪 Проснулась. Молодец. Дальше сложнее.'];
+const GREETINGS_DAY=['👀 Полдень. Что сделано? Считаем.','😏 Надеюсь, ты не просто скроллишь.','⏳ День на половине. Темп держим.','🎯 Лучшее время для фокуса.'];
+const GREETINGS_EVENING=['🌙 Вечер. Сколько галочек? Честно.','😬 Итоги дня. Готова к правде?','🦉 Вечер! Завтра — не мусорка для задач.','😄 Ну что, сколько «перенесла на завтра»?'];
+const pool=hr<12?GREETINGS_MORNING:hr<17?GREETINGS_DAY:GREETINGS_EVENING;
+document.getElementById('eyebrow').textContent=pool[Math.floor(Math.random()*pool.length)];
+
+// ══ I18N ══
+function t(k){var d=L[state.lang]||L.ru;return d[k]!==undefined?d[k]:(L.ru[k]!==undefined?L.ru[k]:k);}
+function rnd(a){return Array.isArray(a)?a[Math.floor(Math.random()*a.length)]:a;}
+function getRecs(){return[t('rec_none'),t('rec_day'),t('rec_week'),t('rec_month')];}
+function getPrioL(){return{high:t('prio_hi'),medium:t('prio_md'),low:t('prio_lo')};}
+function getTips(){return t('tips_'+(state.humor==='kind'?'kind':'sar'));}
+function setText(id,v){const e=document.getElementById(id);if(e&&v!==undefined)e.textContent=v;}
+function setAttr(id,attr,v){const e=document.getElementById(id);if(e)e[attr]=v;}
+function applyTheme(th){document.getElementById('app').setAttribute('data-theme',th||'sand');}
+function applyI18n(){
+  var T=L[state.lang]||L.ru;
+  function tx(id,key,fb){var e=document.getElementById(id);if(e)e.textContent=T[key]!==undefined?T[key]:(fb||'');}
+  function ph(id,key,fb){var e=document.getElementById(id);if(e)e.placeholder=T[key]!==undefined?T[key]:(fb||'');}
+  // ── Tab bar ──
+  tx('tab-home-lbl','nav_tasks','Tasks');
+  tx('tab-cal-lbl','nav_cal','Timeline');
+  tx('tab-cats-lbl','nav_cats','Tags');
+  tx('tab-set-lbl','nav_sett','Settings');
+  // ── Screen titles ──
+  tx('settings-title','s_title','Settings');
+  // Home title
+  var _ht=document.getElementById('home-title');
+  if(_ht){var _tl=(L[state.lang]||L.ru).home_title||'Мой\nДень';_ht.innerHTML=_tl.replace('\n','<br>');}
+  tx('cats-title','nav_cats','Tags');
+  tx('cal-title','nav_cal','Timeline');
+  // ── Home ──
+  tx('filter-today','tab_today','Today');
+  tx('filter-all','tab_all','All');
+  tx('filter-done','tab_done','Done');
+  tx('stat-today-lbl','s_today','TODAY');
+  tx('stat-all-lbl','s_all','ALL');
+  tx('stat-done-lbl','s_done','DONE');
+  // ── Settings section labels ──
+  tx('s-lang-lbl','s_lang_lbl','Language');
+  tx('s-theme-lbl','s_theme_lbl','Theme');
+  tx('s-family-lbl','sl_fam','Family');
+  tx('s-system-lbl','s_sys','System');
+  tx('s-tips-lbl','s_tips_title','ADHD Tips');
+  // ── Cats ──
+  tx('btn-new-cat','cat_new','+ New');
+  // ── Placeholders ──
+  ph('new-member','add_member_ph','Add member...');
+  ph('task-title','add_title_ph','Task name...');
+  ph('task-note','add_note_ph','Note...');
+}
+function updateGreeting(){
+  const hr=new Date().getHours();
+  const period=hr<12?'m':hr<17?'d':'e';
+  const hk=state.humor==='kind'?'kind':'sar';
+  const key='greet_'+period+'_'+hk;
+  const pool=t(key);
+  const msg=rnd(pool)||'...';
+  const el=document.getElementById('eyebrow');
+  if(el) el.textContent=msg;
+}
+function updateHdrBtns(){
+  const l=LANGS.find(l=>l.c===state.lang);
+  const langBtn=document.getElementById('hdr-lang-btn');
+  if(langBtn) langBtn.textContent=l?l.f:'🌍';
+  const thIcons={sand:'🌿',dark:'🌙',forest:'🌲',ocean:'🌊'};
+  const themeBtn=document.getElementById('hdr-theme-btn');
+  if(themeBtn) themeBtn.textContent=thIcons[state.theme]||'🎨';
+}
+function showLangPicker(){
+  document.getElementById('qp-title').textContent=t('sl_lang');
+  const body=document.getElementById('qp-body');
+  body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">`+
+    LANGS.map(l=>`<div onclick="changeLang('${l.c}');closeQuickPicker();" style="background:var(--surface);border:2px solid ${state.lang===l.c?'var(--terra)':'transparent'};border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;"><div style="font-size:24px;">${l.f}</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-top:4px;">${l.n}</div></div>`).join('')+
+  `</div>`;
+  document.getElementById('quick-picker').style.display='block';
+}
+function showThemePicker(){
+  document.getElementById('qp-title').textContent=t('sl_theme');
+  const body=document.getElementById('qp-body');
+  const thLabels={sand:t('th_sand'),dark:t('th_dark'),forest:t('th_forest'),ocean:t('th_ocean')};
+  body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`+
+    THEMES.map(th=>`<div onclick="changeTheme('${th.id}');closeQuickPicker();" style="background:${th.bg};border:2.5px solid ${state.theme===th.id?'var(--terra)':'transparent'};border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;"><div style="width:28px;height:28px;border-radius:50%;background:${th.dot};margin:0 auto 8px;"></div><div style="font-size:13px;font-weight:700;color:${th.id==='dark'?'#f0ece8':'#333'};">${thLabels[th.id]}</div></div>`).join('')+
+  `</div>`;
+  document.getElementById('quick-picker').style.display='block';
+}
+function closeQuickPicker(){
+  document.getElementById('quick-picker').style.display='none';
+}
+function dbg(msg){var d=document.getElementById('dbg');if(d){d.style.display='block';d.textContent=msg;setTimeout(function(){d.style.display='none';},3000);}}
+function changeLang(lang){
+  state.lang=lang;
+  save();
+  // update button highlights immediately
+  ['en','ru','sr','de','fr','es','pt','ro'].forEach(function(l){
+    var btn=document.getElementById('lng-'+l);
+    if(!btn)return;
+    if(l===lang){btn.style.background='var(--terra)';btn.style.color='white';btn.style.borderColor='var(--terra)';}
+    else{btn.style.background='var(--surface)';btn.style.color='var(--text)';btn.style.borderColor='var(--warm)';}
+  });
+  applyI18n();
+  renderHome();
+  toast((L[lang]||L.en).lang_applied||(lang.toUpperCase()+' ✓'));
+}
+function changeTheme(th){
+  state.theme=th;save();applyTheme(th);
+  var themes=['sand','dark','forest','ocean'];
+  themes.forEach(function(th2){
+    var btn=document.getElementById('th-'+th2);
+    if(!btn)return;
+    if(th2===th){btn.style.background='var(--terra)';btn.style.color='white';btn.style.borderColor='var(--terra)';}
+    else{btn.style.background='var(--surface)';btn.style.color='var(--text)';btn.style.borderColor='var(--warm)';}
+  });
+}
+function changeHumor(h){
+  state.humor=h; save(); applyI18n(); renderSettings();
+}
+function changeGender(g){
+  state.gender=g; save(); renderSettings();
+}
+
+// ══ ONBOARDING ══
+let _obLang='ru',_obTheme='sand',_obHumor='sarcasm',_obGender='n';
+function obCheckName(){
+  var btn=document.getElementById('ob-n0');
+  if(inp&&btn){
+    var v=inp.value&&inp.value.trim().length>0;
+    btn.disabled=!v;
+    btn.style.opacity=v?'1':'0.3';
+  }
+}
+function obGo(step){
+  document.querySelectorAll('.ob-page').forEach(p=>p.classList.remove('active'));
+  const page=document.getElementById('ob-'+step);
+  if(page){page.classList.add('active');}
+  const em=page?.querySelector('.ob-emoji');
+  if(em){em.style.animation='none';requestAnimationFrame(()=>{em.style.animation='obPop 0.55s cubic-bezier(0.34,1.5,0.64,1) both';});}
+}
+function obPickLang(lang,card){
+  _obLang=lang;
+  document.querySelectorAll('#ob-0 .ob-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+  const T=L[lang]||L.ru;
+  setText('ob1t',T.ob1t); setText('ob1s',T.ob1s);
+  setText('ob2t',T.ob2t); setText('ob2s',T.ob2s);
+  setText('ob3t',T.ob3t); setText('ob3s',T.ob3s);
+  setText('obhkn',T.obhkn); setText('obhkd',T.obhkd);
+  setText('obhsn',T.obhsn); setText('obhsd',T.obhsd);
+  setText('ob4t',T.ob4t||T.ob0t); setText('ob4s',T.ob4s||'');
+  setText('obg-mn',T.obg_m||'He'); setText('obg-fn',T.obg_f||'She'); setText('obg-nn',T.obg_n||'They');
+  setText('ob-finish',T.ob_finish);
+}
+function obPickTheme(th,card){
+  _obTheme=th;
+  document.querySelectorAll('#ob-2 .ob-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+  applyTheme(th);
+}
+function obPickHumor(h,card){
+  _obHumor=h;
+  document.querySelectorAll('#ob-3 .ob-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+}
+function obPickGender(g,card){
+  _obGender=g;
+  document.querySelectorAll('#ob-4 .ob-card').forEach(c=>c.classList.remove('on'));
+  card.classList.add('on');
+}
+function obFinish(){
+  state.lang=_obLang; state.theme=_obTheme; state.humor=_obHumor;
+  state.onboarded=true;
+  save(); applyTheme(state.theme); applyI18n(); updateHdrBtns();
+  goto('home');
+}
+
+// ══ INIT ══
+(function(){
+  // Always force Russian (localStorage may have stale lang)
+  state.lang='ru';
+  // Apply theme first so page isn't flash-unstyled
+  applyTheme(state.theme||'sand');
+  // Hide every screen; JS will show the right one
+  var screens=document.querySelectorAll('.screen');
+  for(var i=0;i<screens.length;i++) screens[i].classList.remove('active');
+  // Calendar panels
+  var d=document.getElementById('cv-day'),
+      w=document.getElementById('cv-week'),
+      mo=document.getElementById('cv-month');
+  if(d)d.style.display='block';
+  if(w)w.style.display='none';
+  if(mo)mo.style.display='none';
+  // Show tab bar + fab
+  var tb=document.getElementById('tab-bar'),
+      fab=document.getElementById('fab');
+  if(tb)tb.style.display='flex';
+  if(fab)fab.style.display='flex';
+  // Apply translations
+  applyI18n();
+  // Show home
+  var home=document.getElementById('screen-home');
+  if(home)home.classList.add('active');
+  renderHome();
+
+  // Firebase sync — слушаем изменения от мужа/других устройств
+  var _fbIgnoreNext = false;
+  window._onFbReady = function() {
+    window._fbListen(function(remoteState) {
+      if (_fbIgnoreNext) { _fbIgnoreNext = false; return; }
+      // Мерджим: берём remote если он новее
+      if (remoteState && remoteState.tasks) {
+        state = remoteState;
+        try{localStorage.setItem('focus_v17',JSON.stringify(state));}catch(e){}
+        renderHome();
+        showToast('🔄 Синхронизировано');
+      }
+    });
+  };
+  if (window._fbReady && window._onFbReady) window._onFbReady();
+})();
+</script>
+</body>
+</html>
